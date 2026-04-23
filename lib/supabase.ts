@@ -4,7 +4,7 @@ import { env } from "./env";
 
 const supabaseUrl = env.PROJECT_URL || env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = env.ANON_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const supabaseServiceKey = env.SERVICE_ROLE || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+const supabaseServiceKey = env.SERVICE_ROLE;
 
 // Public client for read operations (uses anon key, respects RLS)
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

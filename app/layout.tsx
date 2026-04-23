@@ -11,6 +11,7 @@ import { Footer } from "@/components/footer";
 import { Settings } from "@/components/settings";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { WebMcpProvider } from "@/components/agents/webmcp-provider";
+import { SITE_HOST, SITE_URL } from "@/lib/site";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -28,10 +29,8 @@ function isConfiguredAnalyticsScriptUrl(url: string | undefined): url is string 
   }
 }
 
-const siteUrl = "https://iamamitkumar.dev";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
     template: "%s | Amit Kumar",
@@ -48,13 +47,13 @@ export const metadata: Metadata = {
     "Full-Stack Engineer",
     "MVP Builder",
   ],
-  authors: [{ name: "Amit Kumar", url: siteUrl }],
+  authors: [{ name: "Amit Kumar", url: SITE_URL }],
   creator: "Amit Kumar",
   openGraph: {
     title: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
     description:
       "Mission Control for AI Agents. Engineering production-grade agentic architectures, trading platforms, and enterprise SaaS.",
-    url: siteUrl,
+    url: SITE_URL,
     siteName: "Amit Kumar",
     locale: "en_US",
     type: "website",
@@ -119,13 +118,13 @@ export default function RootLayout({ children }) {
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": `${siteUrl}/#person`,
+    "@id": `${SITE_URL}/#person`,
     name: "Amit Kumar",
     alternateName: ["growthperclick", "iamamitkumar"],
-    url: siteUrl,
+    url: SITE_URL,
     description:
       "Developer, writer, and content creator building production-grade agentic architectures, multi-agent orchestration, and enterprise SaaS.",
-    image: `${siteUrl}/images/og-image.png`,
+    image: `${SITE_URL}/images/og-image.png`,
     email: "hi@iamamitkumar.dev",
     jobTitle: "Developer, Writer, Content Creator",
     sameAs: [
@@ -140,12 +139,12 @@ export default function RootLayout({ children }) {
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${siteUrl}/#website`,
+    "@id": `${SITE_URL}/#website`,
     name: "Amit Kumar",
-    alternateName: "iamamitkumar.dev",
-    url: siteUrl,
-    author: { "@id": `${siteUrl}/#person` },
-    publisher: { "@id": `${siteUrl}/#person` },
+    alternateName: SITE_HOST,
+    url: SITE_URL,
+    author: { "@id": `${SITE_URL}/#person` },
+    publisher: { "@id": `${SITE_URL}/#person` },
     inLanguage: "en-US",
   };
 

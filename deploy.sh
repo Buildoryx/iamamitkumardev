@@ -12,10 +12,19 @@
 
 set -euo pipefail
 
-EC2_HOST="${EC2_HOST:-ec2-13-53-175-145.eu-north-1.compute.amazonaws.com}"
+# Required: do not commit real hosts or key paths. For Vercel-only deploys, skip this script.
+if [[ -z "${EC2_HOST:-}" ]]; then
+  echo "❌ EC2_HOST is required for legacy AWS deploy. For Vercel use: vercel link && vercel deploy" >&2
+  exit 1
+fi
+if [[ -z "${EC2_PEM_KEY:-}" ]]; then
+  echo "❌ EC2_PEM_KEY must be set to your SSH private key path." >&2
+  exit 1
+fi
+
 EC2_USER="${EC2_USER:-ubuntu}"
 APP_DIR="${APP_DIR:-/var/www/devamitkumar}"
-PEM_KEY="${EC2_PEM_KEY:-${HOME}/.ssh/jaipurfedora.pem}"
+PEM_KEY="${EC2_PEM_KEY}"
 APP_NAME="${APP_NAME:-iamamitkumar}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://iamamitkumar.dev}"
 HEALTHCHECK_ATTEMPTS="${HEALTHCHECK_ATTEMPTS:-5}"

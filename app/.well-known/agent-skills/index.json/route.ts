@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 
-const SITE_URL = "https://iamamitkumar.dev";
+import { SITE_URL } from "@/lib/site";
 
 export async function GET() {
   const skills = [

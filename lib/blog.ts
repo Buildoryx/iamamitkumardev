@@ -3,8 +3,11 @@ import path from "path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 import { getSupabaseClient, hasSupabaseConfig } from "./supabase";
+import { SITE_URL } from "./site";
 
 const root = process.cwd();
+
+export { SITE_URL } from "./site";
 
 export interface PostSummary {
   id: string;
@@ -29,8 +32,6 @@ export interface Post extends PostSummary {
   createdAt: string;
   updatedAt: string;
 }
-
-export const SITE_URL = "https://iamamitkumar.dev";
 
 export const AUTHOR = {
   name: "Amit Kumar",

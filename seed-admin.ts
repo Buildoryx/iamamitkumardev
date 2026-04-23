@@ -4,6 +4,7 @@
  */
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
+import { SITE_URL } from "./lib/site";
 
 const supabaseUrl = process.env.PROJECT_URL!;
 const supabaseServiceKey = process.env.SERVICE_ROLE!;
@@ -12,7 +13,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const ADMIN_EMAIL = "hello@iamamitkumar.dev";
+const ADMIN_EMAIL = "hi@iamamitkumar.dev";
 const ADMIN_PASS = process.argv[2];
 
 if (!ADMIN_PASS) {
@@ -64,7 +65,7 @@ async function main() {
     process.exit(1);
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || SITE_URL;
   console.log("✅ Admin user created successfully!");
   console.log(`   ID:       ${data.user.id}`);
   console.log(`   Email:    ${data.user.email}`);

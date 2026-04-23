@@ -13,13 +13,13 @@ Amit Kumar's personal website and blog. Built with Next.js, Tailwind CSS v4, and
 ## Getting Started
 
 ```bash
-git clone https://github.com/ravenrepo/iamamitkumar.dev.git
-cd iamamitkumar.dev
+git clone https://github.com/Rexiumit/mypersonalportfolio.git
+cd mypersonalportfolio
 npm install
 npm run dev
 ```
 
-The dev server runs on [http://localhost:3000](http://localhost:3000) using Turbopack.
+Production site: **https://iamamitkumar.dev**. The dev server runs on [http://localhost:3000](http://localhost:3000) using Turbopack. Set `NEXT_PUBLIC_APP_URL=https://iamamitkumar.dev` on Vercel for canonical URLs and analytics.
 
 ## Built With
 

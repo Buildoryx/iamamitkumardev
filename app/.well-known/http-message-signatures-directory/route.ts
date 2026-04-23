@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-const SITE_URL = "https://iamamitkumar.dev";
-
 export async function GET() {
   const jwks = {
     keys: [

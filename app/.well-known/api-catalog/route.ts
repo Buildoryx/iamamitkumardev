@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const SITE_URL = "https://iamamitkumar.dev";
+import { SITE_URL } from "@/lib/site";
 
 export async function GET() {
   const apiCatalog = {

@@ -9,10 +9,12 @@
 set -euo pipefail
 umask 077
 
-EC2_HOST="ec2-13-53-175-145.eu-north-1.compute.amazonaws.com"
-EC2_USER="ubuntu"
-APP_DIR="/var/www/devamitkumar"
-PEM_KEY="${HOME}/.ssh/jaipurfedora.pem"
+: "${EC2_HOST:?Set EC2_HOST for legacy AWS server}"
+: "${EC2_USER:=ubuntu}"
+: "${APP_DIR:=/var/www/devamitkumar}"
+: "${EC2_PEM_KEY:?Set EC2_PEM_KEY to your SSH private key path}"
+
+PEM_KEY="${EC2_PEM_KEY}"
 
 echo "▶ Pushing production .env to EC2..."
 

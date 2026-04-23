@@ -69,6 +69,7 @@ I publish founder notes, build logs, and playbooks on [Substack](https://substac
 
 ## Explore
 
+- [iamamitkumar.dev](https://iamamitkumar.dev) — home
 - [Blog](/blog)
 - [Newsletter](/newsletter)
 - [Workflow](/workflow)

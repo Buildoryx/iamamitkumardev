@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ravenrepo/iamamitkumar.dev.git"
+    "url": "git+https://github.com/Rexiumit/mypersonalportfolio.git"
   },
   "dependencies": {
     "@notionhq/client": "^2.3.0",

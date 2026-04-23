@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://iamamitkumar.dev";
+import { SITE_URL as DEFAULT_SITE_URL } from "./site";
 
 export const OAUTH_SCOPES = {
   openid: "Authenticate the user with OpenID Connect.",
