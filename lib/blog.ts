@@ -241,9 +241,8 @@ export async function getPublishedPosts(
   limit?: number,
   offset?: number
 ): Promise<Post[]> {
-  const supabase = getSupabaseClient();
-
-  if (hasSupabaseConfig && supabase) {
+  if (hasSupabaseConfig()) {
+    const supabase = getSupabaseClient();
     let query = supabase
       .from("post")
       .select("*")
@@ -266,9 +265,8 @@ export async function getPublishedPosts(
 }
 
 export async function getPublishedPostCount(): Promise<number> {
-  const supabase = getSupabaseClient();
-
-  if (hasSupabaseConfig && supabase) {
+  if (hasSupabaseConfig()) {
+    const supabase = getSupabaseClient();
     const { count, error } = await supabase
       .from("post")
       .select("*", { count: "exact", head: true })
@@ -283,9 +281,8 @@ export async function getPublishedPostCount(): Promise<number> {
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
-  const supabase = getSupabaseClient();
-
-  if (hasSupabaseConfig && supabase) {
+  if (hasSupabaseConfig()) {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("post")
       .select("*")

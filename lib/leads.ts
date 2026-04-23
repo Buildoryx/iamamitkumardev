@@ -1,9 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { env } from "./env";
-
-const supabaseAdmin = createClient(env.PROJECT_URL, env.SERVICE_ROLE);
+import { getSupabaseAdmin } from "./supabase";
 
 export async function listContactInquiries(limit = 50) {
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from("contact_inquiries")
     .select("*")
@@ -18,6 +16,7 @@ export async function listContactInquiries(limit = 50) {
 }
 
 export async function listNewsletterSubscribers(limit = 50) {
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from("newsletter_subscribers")
     .select("*")

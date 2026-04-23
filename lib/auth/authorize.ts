@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 import { getUnauthorizedResourceMetadataHeader } from "@/lib/agent-discovery";
 
 export type UserRole = "user" | "admin";
@@ -27,6 +27,21 @@ async function isAdminUser(userId: string): Promise<boolean> {
 }
 
 export async function requireAuth(req: NextRequest): Promise<AuthResult> {
+  const env = getEnv();
+  if (!env.PROJECT_URL || !env.ANON_KEY) {
+    return {
+      authorized: false,
+      session: null,
+      response: NextResponse.json(
+        {
+          error:
+            "Authentication is not configured. Set PROJECT_URL and ANON_KEY on the server.",
+        },
+        { status: 503 },
+      ),
+    };
+  }
+
   const cookieStore = await cookies();
 
   const supabase = createServerClient(env.PROJECT_URL, env.ANON_KEY, {
