@@ -12,6 +12,8 @@ import { Settings } from "@/components/settings";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { WebMcpProvider } from "@/components/agents/webmcp-provider";
 import { SITE_HOST, SITE_URL } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -183,6 +185,8 @@ export default function RootLayout({ children }) {
         </main>
         <Footer />
         <Settings />
+        <Analytics />
+        <SpeedInsights />
         {analyticsDomain &&
         analyticsScriptUrl &&
         isConfiguredAnalyticsScriptUrl(analyticsScriptUrl) ? (
