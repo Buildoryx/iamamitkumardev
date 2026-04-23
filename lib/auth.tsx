@@ -1,14 +1,38 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Database } from "@/types/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { User, Session } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_PROJECT_URL || process.env.PROJECT_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_ANON_KEY || process.env.ANON_KEY!;
+let browserClient: SupabaseClient<Database> | undefined;
 
-const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+function getBrowserClient(): SupabaseClient<Database> {
+  if (browserClient) return browserClient;
+
+  const url =
+    process.env.NEXT_PUBLIC_PROJECT_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.NEXT_PUBLIC_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!url || !key) {
+    throw new Error(
+      "Supabase browser env missing: set NEXT_PUBLIC_PROJECT_URL and NEXT_PUBLIC_ANON_KEY (see Vercel → Environment Variables).",
+    );
+  }
+
+  browserClient = createBrowserClient<Database>(url, key);
+  return browserClient;
+}
 
 interface AuthState {
   user: User | null;
@@ -30,17 +54,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    let cancelled = false;
+    const supabase = getBrowserClient();
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setState({ user: session?.user ?? null, session, isPending: false });
+      if (!cancelled) {
+        setState({
+          user: session?.user ?? null,
+          session,
+          isPending: false,
+        });
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setState({ user: session?.user ?? null, session, isPending: false });
+      setState({
+        user: session?.user ?? null,
+        session,
+        isPending: false,
+      });
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>;
@@ -51,11 +91,20 @@ export function useAuth() {
 }
 
 export async function signInWithEmail(email: string, password: string) {
-  return supabase.auth.signInWithPassword({ email, password });
+  return getBrowserClient().auth.signInWithPassword({ email, password });
 }
 
 export async function signOut() {
-  return supabase.auth.signOut();
+  return getBrowserClient().auth.signOut();
 }
 
-export { supabase as authClient };
+/** Lazy proxy — safe during `next build` until actually used in the browser. */
+export const authClient = new Proxy({} as SupabaseClient<Database>, {
+  get(_, prop) {
+    const client = getBrowserClient();
+    const value = Reflect.get(client, prop as PropertyKey);
+    return typeof value === "function"
+      ? (value as (...args: unknown[]) => unknown).bind(client)
+      : value;
+  },
+});
