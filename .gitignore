@@ -62,3 +62,12 @@ package-lock.json
 
 # supabase temp files
 supabase/.temp/
+
+# SEO Flywheel (excluded — not wanted in production)
+app/api/seo/
+lib/seo-db.ts
+lib/seo-intake.ts
+seoplan.md
+seoplan2.md
+supabase/migrations/20260424000001_seo_flywheel_schema.sql
+vercel.json
