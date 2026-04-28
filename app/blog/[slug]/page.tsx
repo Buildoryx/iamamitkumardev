@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const articleDescription = post.excerpt || post.summary || `Blog post by Amit Kumar — ${post.title}`;
 
   return {
-    title: `${post.title} - Amit Kumar`,
+    title: post.title,
     description: articleDescription,
     alternates: { canonical: url },
     openGraph: {

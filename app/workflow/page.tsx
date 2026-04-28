@@ -117,13 +117,11 @@ export default function WorkflowPage() {
   return (
     <>
       <Container className="min-h-screen">
-        <p className="text-foreground pt-4 text-base">
-          My AI-first dev workflow — the underlying stack powering how I build,
-          scale, and automate.
-        </p>
-        <p className="text-foreground/70 pt-4 text-base">
-          Every tool here earns its place: no fluff, no bloat — just systems
-          that let me move fast and ship clean.
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight pt-4 mb-2">
+          My AI-First Dev Stack & Tools
+        </h1>
+        <p className="text-foreground/70 text-base">
+          The underlying stack powering how I build, scale, and automate.
         </p>
 
         <div className="mt-12 flex flex-col gap-12">

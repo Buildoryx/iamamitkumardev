@@ -4,6 +4,7 @@ import { LinkPreview } from "./link-preview";
 export const Header = () => {
   return (
     <div>
+      <h1 className="sr-only">Amit Kumar — Agentic Architect, Full-Stack Engineer & Indie Hacker</h1>
       <div className="text-foreground pt-4 text-base">
         I'm an indie hacker shipping AI products in public. I go from idea to
         MVP fast, test demand, and iterate weekly. I share the full journey on{" "}
