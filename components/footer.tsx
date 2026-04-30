@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { SUBSTACK_URL } from "@/lib/site";
 import Container from "./container";
 import { LinkPreview } from "./link-preview";
 
@@ -15,11 +16,10 @@ export const Footer = () => {
         <div className="flex flex-col items-center gap-1.5">
           <div className="text-foreground/40 text-center text-sm text-balance">
             Built in public by an indie hacker. Here&apos;s the{" "}
-            <LinkPreview url="https://github.com/designerdada/Designerdadacom">code</LinkPreview>{" "}
-            and{" "}
-            <LinkPreview url="https://substack.com/@growthperclick">
-              launch notes
+            <LinkPreview url="https://github.com/designerdada/Designerdadacom">
+              code
             </LinkPreview>{" "}
+            and <LinkPreview url={SUBSTACK_URL}>launch notes</LinkPreview>{" "}
             behind product decisions.
           </div>
           <p className="text-foreground/40 text-sm text-balance">

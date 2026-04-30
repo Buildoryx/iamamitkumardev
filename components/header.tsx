@@ -1,10 +1,13 @@
 import React from "react";
+import { SUBSTACK_URL } from "@/lib/site";
 import { LinkPreview } from "./link-preview";
 
 export const Header = () => {
   return (
     <div>
-      <h1 className="sr-only">Amit Kumar — Agentic Architect, Full-Stack Engineer & Indie Hacker</h1>
+      <h1 className="sr-only">
+        Amit Kumar — Agentic Architect, Full-Stack Engineer & Indie Hacker
+      </h1>
       <div className="text-foreground pt-4 text-base">
         I'm an indie hacker shipping AI products in public. I go from idea to
         MVP fast, test demand, and iterate weekly. I share the full journey on{" "}
@@ -19,15 +22,13 @@ export const Header = () => {
           LaunchSuite.tech
         </LinkPreview>{" "}
         as a production SaaS boilerplate and pushed it to Product Hunt. I also
-        build high-leverage products in AI automation, trading intelligence,
-        and growth systems.
+        build high-leverage products in AI automation, trading intelligence, and
+        growth systems.
       </div>
       <div className="text-foreground pt-4 text-base">
         I publish founder notes, build logs, and playbooks on{" "}
-        <LinkPreview url="https://substack.com/@growthperclick">
-          Substack
-        </LinkPreview>{" "}
-        for builders who want speed plus real execution.
+        <LinkPreview url={SUBSTACK_URL}>Substack</LinkPreview> for builders who
+        want speed plus real execution.
       </div>
     </div>
   );
