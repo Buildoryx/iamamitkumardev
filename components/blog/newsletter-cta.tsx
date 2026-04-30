@@ -9,7 +9,7 @@ import { SUBSTACK_SUBSCRIBE_URL } from "@/lib/site";
 
 export function NewsletterCTA() {
   return (
-    <section className="border-border bg-card/60 relative overflow-hidden rounded-lg border p-4 shadow-sm sm:p-5">
+    <section className="border-border relative overflow-hidden rounded-lg border p-4 shadow-sm sm:p-5">
       <div className="via-foreground/15 pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
