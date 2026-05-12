@@ -4,10 +4,13 @@ import React, { useState } from "react";
 import Container from "@/components/container";
 import { Subheading } from "@/components/subheading";
 import { DottedSeparator } from "@/components/separator";
+import { csrfFetch } from "@/lib/csrf-client";
 
 export function NewsletterSignup() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +20,7 @@ export function NewsletterSignup() {
     setStatus("loading");
 
     try {
-      const res = await fetch("/api/subscribe", {
+      const res = await csrfFetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -40,9 +43,9 @@ export function NewsletterSignup() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="mx-auto w-full max-w-md">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <input
             type="email"
             value={email}
@@ -50,12 +53,12 @@ export function NewsletterSignup() {
             placeholder="your@email.com"
             required
             disabled={status === "loading"}
-            className="flex-1 px-4 py-3 rounded-md border border-neutral-200 dark:border-neutral-800 bg-transparent text-foreground placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity50"
+            className="text-foreground focus:ring-primary disabled:opacity50 flex-1 rounded-md border border-neutral-200 bg-transparent px-4 py-3 placeholder:text-neutral-400 focus:ring-2 focus:outline-none dark:border-neutral-800"
           />
           <button
             type="submit"
             disabled={status === "loading"}
-            className="px-6 py-3 rounded-md bg-primary text-white font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="bg-primary rounded-md px-6 py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {status === "loading" ? "Joining..." : "Join"}
           </button>
@@ -82,23 +85,24 @@ export default function NewsletterPage() {
       <div className="py-12 md:py-20">
         <Subheading>Newsletter</Subheading>
 
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mt-2 mb-6">
+        <h1 className="mt-2 mb-6 text-3xl font-bold tracking-tight md:text-5xl">
           Get smarter about <span className="text-primary">AI Agents</span>
         </h1>
 
-        <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-lg mb-12">
-          Every week, I share what I learned building autonomous AI agents, orchestrating multi-agent workflows, and shipping SaaS products in public.
-          Zero fluff. Real code. Actual results.
+        <p className="mb-12 max-w-lg text-lg text-neutral-600 dark:text-neutral-400">
+          Every week, I share what I learned building autonomous AI agents,
+          orchestrating multi-agent workflows, and shipping SaaS products in
+          public. Zero fluff. Real code. Actual results.
         </p>
 
         <NewsletterSignup />
 
         <DottedSeparator className="my-12" />
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid gap-8 md:grid-cols-2">
           <div>
-            <h3 className="font-medium mb-2">What you'll get</h3>
-            <ul className="text-neutral-600 dark:text-neutral-400 space-y-2">
+            <h3 className="mb-2 font-medium">What you'll get</h3>
+            <ul className="space-y-2 text-neutral-600 dark:text-neutral-400">
               <li>✓ Real builds with code examples</li>
               <li>✓ Mistakes I made (so you don't)</li>
               <li>✓ Tool recommendations that actually work</li>
@@ -106,10 +110,10 @@ export default function NewsletterPage() {
             </ul>
           </div>
           <div>
-            <h3 className="font-medium mb-2">Join 200+ indie hackers</h3>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-              I respect your inbox. No spam, no fluff, no "buy my course" emails.
-              Just real insights from someone building in public.
+            <h3 className="mb-2 font-medium">Join 200+ indie hackers</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              I respect your inbox. No spam, no fluff, no "buy my course"
+              emails. Just real insights from someone building in public.
             </p>
           </div>
         </div>

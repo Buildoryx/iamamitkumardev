@@ -13,12 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Settings2,
-  Save,
-  ArrowLeft,
-  Terminal,
-} from "lucide-react";
+import { Settings2, Save, ArrowLeft, Terminal } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -26,6 +21,7 @@ import rehypeHighlight from "rehype-highlight";
 import { useToast } from "@/hooks/use-toast";
 import { ToastContainer } from "@/components/ui/toast-container";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { csrfFetch } from "@/lib/csrf-client";
 
 export default function Editor() {
   const { session } = useAuth();
@@ -43,7 +39,9 @@ export default function Editor() {
   const [isAutoSlug, setIsAutoSlug] = useState(true);
   const [showMeta, setShowMeta] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [viewMode, setViewMode] = useState<"write" | "preview" | "split">("split");
+  const [viewMode, setViewMode] = useState<"write" | "preview" | "split">(
+    "split",
+  );
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -76,7 +74,17 @@ export default function Editor() {
       try {
         localStorage.setItem(
           "editor-draft-new",
-          JSON.stringify({ title, slug, excerpt, content, status, tags, coverImage, metaTitle, metaDescription }),
+          JSON.stringify({
+            title,
+            slug,
+            excerpt,
+            content,
+            status,
+            tags,
+            coverImage,
+            metaTitle,
+            metaDescription,
+          }),
         );
       } catch (e) {
         console.error("Autosave failed:", e);
@@ -85,7 +93,18 @@ export default function Editor() {
     return () => {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     };
-  }, [title, slug, excerpt, content, status, tags, coverImage, metaTitle, metaDescription, isDirty]);
+  }, [
+    title,
+    slug,
+    excerpt,
+    content,
+    status,
+    tags,
+    coverImage,
+    metaTitle,
+    metaDescription,
+    isDirty,
+  ]);
 
   useEffect(() => {
     const saved = localStorage.getItem("editor-draft-new");
@@ -105,7 +124,9 @@ export default function Editor() {
           setIsAutoSlug(false);
           addToast("Draft restored from autosave", "info");
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -114,7 +135,7 @@ export default function Editor() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/posts", {
+      const res = await csrfFetch("/api/admin/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +147,12 @@ export default function Editor() {
           excerpt,
           content,
           status,
-          tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+          tags: tags
+            ? tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
           coverImage: coverImage || undefined,
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
@@ -172,14 +198,20 @@ export default function Editor() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="border-border font-mono text-xs">
-              <SelectItem value="draft" className="uppercase">Draft</SelectItem>
-              <SelectItem value="published" className="uppercase">Published</SelectItem>
+              <SelectItem value="draft" className="uppercase">
+                Draft
+              </SelectItem>
+              <SelectItem value="published" className="uppercase">
+                Published
+              </SelectItem>
             </SelectContent>
           </Select>
           <button
             onClick={() => setShowMeta(!showMeta)}
             className={`font-mono text-[10px] tracking-widest uppercase transition-colors ${
-              showMeta ? "text-foreground" : "text-foreground/40 hover:text-foreground"
+              showMeta
+                ? "text-foreground"
+                : "text-foreground/40 hover:text-foreground"
             }`}
           >
             <Settings2 className="mr-1 inline h-3 w-3" />
@@ -201,43 +233,51 @@ export default function Editor() {
       {showMeta && (
         <div className="mb-6 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-foreground/40 font-mono text-xs uppercase tracking-wide">Meta title (max 70)</label>
+            <label className="text-foreground/40 font-mono text-xs tracking-wide uppercase">
+              Meta title (max 70)
+            </label>
             <input
               type="text"
               value={metaTitle}
               onChange={(e) => setMetaTitle(e.target.value)}
               maxLength={70}
-              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 w-full border px-3 py-2 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 focus:border-primary focus:ring-primary w-full border px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none"
               placeholder="Custom SEO title..."
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-foreground/40 font-mono text-xs uppercase tracking-wide">Cover image URL</label>
+            <label className="text-foreground/40 font-mono text-xs tracking-wide uppercase">
+              Cover image URL
+            </label>
             <input
               type="url"
               value={coverImage}
               onChange={(e) => setCoverImage(e.target.value)}
-              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 w-full border px-3 py-2 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 focus:border-primary focus:ring-primary w-full border px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none"
               placeholder="https://..."
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-foreground/40 font-mono text-xs uppercase tracking-wide">Meta description (max 160)</label>
+            <label className="text-foreground/40 font-mono text-xs tracking-wide uppercase">
+              Meta description (max 160)
+            </label>
             <textarea
               value={metaDescription}
               onChange={(e) => setMetaDescription(e.target.value)}
               maxLength={160}
-              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 h-16 w-full resize-none border px-3 py-2 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 focus:border-primary focus:ring-primary h-16 w-full resize-none border px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none"
               placeholder="Custom SEO description..."
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-foreground/40 font-mono text-xs uppercase tracking-wide">Tags (comma separated)</label>
+            <label className="text-foreground/40 font-mono text-xs tracking-wide uppercase">
+              Tags (comma separated)
+            </label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 w-full border px-3 py-2 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 focus:border-primary focus:ring-primary w-full border px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none"
               placeholder="ai-agents, saas, next.js"
             />
           </div>
@@ -268,7 +308,7 @@ export default function Editor() {
             placeholder="Brief excerpt (optional)..."
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
-            className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 h-20 w-full resize-none border p-3 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="bg-card/30 border-border text-foreground placeholder:text-foreground/30 focus:border-primary focus:ring-primary h-20 w-full resize-none border p-3 text-sm transition-colors focus:ring-1 focus:outline-none"
           />
           {(viewMode === "write" || viewMode === "split") && (
             <RichTextEditor
@@ -290,7 +330,10 @@ export default function Editor() {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="prose dark:prose-invert prose-headings:font-display prose-headings:font-bold prose-a:text-primary prose-p:text-muted-foreground prose-code:font-mono prose-img:rounded-lg max-w-none">
                 <h2>{title || "Untitled"}</h2>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight]}
+                >
                   {content}
                 </ReactMarkdown>
               </div>

@@ -4,7 +4,7 @@ import { join } from "path";
 import { existsSync } from "fs";
 import { requireAdmin } from "@/lib/auth/authorize";
 import { fileTypeFromBuffer } from "file-type";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitAsync } from "@/lib/rate-limit";
 import { withCsrfProtection } from "@/lib/csrf";
 
 export const maxDuration = 60;
@@ -25,7 +25,7 @@ async function handleUpload(request: NextRequest) {
       return authResult.response;
     }
 
-    const { allowed } = rateLimit(request);
+    const { allowed } = await rateLimitAsync(request);
     if (!allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }

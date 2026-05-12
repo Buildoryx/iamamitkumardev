@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/authorize";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitAsync } from "@/lib/rate-limit";
 import { listContactInquiries, listNewsletterSubscribers } from "@/lib/leads";
 
 function parseLimit(value: string | null, fallback = 50) {
@@ -10,7 +10,10 @@ function parseLimit(value: string | null, fallback = 50) {
 }
 
 export async function GET(req: NextRequest) {
-  const rateLimitResult = rateLimit(req, { windowMs: 60000, maxRequests: 30 });
+  const rateLimitResult = await rateLimitAsync(req, {
+    windowMs: 60000,
+    maxRequests: 30,
+  });
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },

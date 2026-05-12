@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from "@/lib/csrf-constants";
 
-const CSRF_COOKIE_NAME = "csrf_token";
-const CSRF_HEADER_NAME = "x-csrf-token";
+export { CSRF_COOKIE_NAME, CSRF_HEADER_NAME };
 const TOKEN_LENGTH = 32;
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -43,7 +43,7 @@ export function validateCsrfToken(req: NextRequest): boolean {
 }
 
 export function withCsrfProtection(
-  handler: (req: NextRequest) => Promise<NextResponse>
+  handler: (req: NextRequest) => Promise<NextResponse>,
 ) {
   return async function (req: NextRequest): Promise<NextResponse> {
     if (SAFE_METHODS.has(req.method)) {
@@ -52,8 +52,11 @@ export function withCsrfProtection(
 
     if (!validateCsrfToken(req)) {
       return NextResponse.json(
-        { error: "CSRF validation failed. Please refresh the page and try again." },
-        { status: 403 }
+        {
+          error:
+            "CSRF validation failed. Please refresh the page and try again.",
+        },
+        { status: 403 },
       );
     }
 
@@ -62,7 +65,7 @@ export function withCsrfProtection(
 }
 
 export function withCsrfProtectionWithParams<T extends object>(
-  handler: (req: NextRequest, ctx: T) => Promise<NextResponse>
+  handler: (req: NextRequest, ctx: T) => Promise<NextResponse>,
 ) {
   return async function (req: NextRequest, ctx: T): Promise<NextResponse> {
     if (SAFE_METHODS.has(req.method)) {
@@ -71,8 +74,11 @@ export function withCsrfProtectionWithParams<T extends object>(
 
     if (!validateCsrfToken(req)) {
       return NextResponse.json(
-        { error: "CSRF validation failed. Please refresh the page and try again." },
-        { status: 403 }
+        {
+          error:
+            "CSRF validation failed. Please refresh the page and try again.",
+        },
+        { status: 403 },
       );
     }
 
@@ -81,7 +87,7 @@ export function withCsrfProtectionWithParams<T extends object>(
 }
 
 export function withCsrfTokenResponse(
-  handler: (req: NextRequest) => Promise<NextResponse>
+  handler: (req: NextRequest) => Promise<NextResponse>,
 ) {
   return async function (req: NextRequest): Promise<NextResponse> {
     const response = await handler(req);
@@ -89,7 +95,7 @@ export function withCsrfTokenResponse(
     if (!req.cookies.get(CSRF_COOKIE_NAME)) {
       const token = generateCsrfToken();
       setCsrfCookie(response, token);
-      response.headers.set("X-CSRF-Token", token);
+      response.headers.set(CSRF_HEADER_NAME, token);
     }
 
     return response;

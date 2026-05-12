@@ -3,7 +3,10 @@ const path = require("path");
 const isProd = process.env.NODE_ENV === "production";
 
 function getSupabaseOrigin() {
-  const projectUrl = process.env.PROJECT_URL;
+  const projectUrl =
+    process.env.PROJECT_URL ||
+    process.env.NEXT_PUBLIC_PROJECT_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!projectUrl) return null;
   try {
     return new URL(projectUrl).origin;

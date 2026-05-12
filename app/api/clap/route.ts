@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getClapState, registerClap } from "@/lib/claps";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitAsync } from "@/lib/rate-limit";
 import { withCsrfProtection } from "@/lib/csrf";
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -44,7 +44,7 @@ function getOrCreateVisitorId(request: NextRequest): {
 function withVisitorCookie(
   response: NextResponse,
   visitorId: string,
-  setCookie: boolean
+  setCookie: boolean,
 ) {
   if (setCookie) {
     response.cookies.set({
@@ -61,7 +61,10 @@ function withVisitorCookie(
 }
 
 async function handleClapPost(request: NextRequest) {
-  const limit = rateLimit(request, { windowMs: 60000, maxRequests: 20 });
+  const limit = await rateLimitAsync(request, {
+    windowMs: 60000,
+    maxRequests: 20,
+  });
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please slow down." },
@@ -72,7 +75,7 @@ async function handleClapPost(request: NextRequest) {
           "X-RateLimit-Limit": "20",
           "X-RateLimit-Remaining": "0",
         },
-      }
+      },
     );
   }
 
@@ -80,7 +83,10 @@ async function handleClapPost(request: NextRequest) {
     const payload = await request.json();
     const slug = getValidatedSlug((payload as { slug?: unknown })?.slug);
     if (!slug) {
-      return NextResponse.json({ error: "Valid slug is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Valid slug is required" },
+        { status: 400 },
+      );
     }
 
     const { visitorId, setCookie } = getOrCreateVisitorId(request);
@@ -108,7 +114,10 @@ async function handleClapPost(request: NextRequest) {
 export const POST = withCsrfProtection(handleClapPost);
 
 export async function GET(request: NextRequest) {
-  const limit = rateLimit(request, { windowMs: 60000, maxRequests: 60 });
+  const limit = await rateLimitAsync(request, {
+    windowMs: 60000,
+    maxRequests: 60,
+  });
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please wait a bit." },
@@ -119,7 +128,7 @@ export async function GET(request: NextRequest) {
           "X-RateLimit-Limit": "60",
           "X-RateLimit-Remaining": "0",
         },
-      }
+      },
     );
   }
 
@@ -127,7 +136,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const slug = getValidatedSlug(searchParams.get("slug"));
     if (!slug) {
-      return NextResponse.json({ error: "Valid slug is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Valid slug is required" },
+        { status: 400 },
+      );
     }
 
     const { visitorId, setCookie } = getOrCreateVisitorId(request);

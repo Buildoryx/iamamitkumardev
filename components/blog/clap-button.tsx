@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { csrfFetch } from "@/lib/csrf-client";
 
 interface ClapButtonProps {
   slug: string;
@@ -23,7 +24,7 @@ function ClapParticle({
 
   return (
     <span
-      className="absolute pointer-events-none"
+      className="pointer-events-none absolute"
       style={{
         left: x,
         top: y,
@@ -85,7 +86,7 @@ export function ClapButton({ slug }: ClapButtonProps) {
   const handleClap = useCallback(async () => {
     if (userClaps >= MAX_CLAPS) {
       setStatusMessage(
-        "Thanks! I really appreciate you liked it. One clap per post here, so please share this blog."
+        "Thanks! I really appreciate you liked it. One clap per post here, so please share this blog.",
       );
       if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
       statusTimeoutRef.current = setTimeout(() => setStatusMessage(null), 3200);
@@ -93,7 +94,7 @@ export function ClapButton({ slug }: ClapButtonProps) {
     }
 
     try {
-      const res = await fetch("/api/clap", {
+      const res = await csrfFetch("/api/clap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug }),
@@ -105,7 +106,10 @@ export function ClapButton({ slug }: ClapButtonProps) {
         setTotalClaps(data.total);
         setStatusMessage("Thanks for the clap!");
         if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
-        statusTimeoutRef.current = setTimeout(() => setStatusMessage(null), 1800);
+        statusTimeoutRef.current = setTimeout(
+          () => setStatusMessage(null),
+          1800,
+        );
       }
     } catch (error) {
       console.error("Failed to clap:", error);
@@ -116,7 +120,8 @@ export function ClapButton({ slug }: ClapButtonProps) {
 
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const containerRect = buttonRef.current.parentElement?.getBoundingClientRect();
+      const containerRect =
+        buttonRef.current.parentElement?.getBoundingClientRect();
       if (containerRect) {
         const x = rect.left - containerRect.left + rect.width / 2;
         const y = rect.top - containerRect.top + rect.height / 2;
@@ -129,7 +134,7 @@ export function ClapButton({ slug }: ClapButtonProps) {
         setParticles((prev) => [...prev, ...newParticles]);
         setTimeout(() => {
           setParticles((prev) =>
-            prev.filter((p) => !newParticles.find((np) => np.id === p.id))
+            prev.filter((p) => !newParticles.find((np) => np.id === p.id)),
           );
         }, 700);
       }
@@ -145,8 +150,8 @@ export function ClapButton({ slug }: ClapButtonProps) {
   const isMaxed = userClaps >= MAX_CLAPS;
 
   return (
-    <div className="flex flex-col items-center gap-4 relative">
-      <div className="absolute inset-0 overflow-visible pointer-events-none">
+    <div className="relative flex flex-col items-center gap-4">
+      <div className="pointer-events-none absolute inset-0 overflow-visible">
         {particles.map((p) => (
           <ClapParticle
             key={p.id}
@@ -162,10 +167,12 @@ export function ClapButton({ slug }: ClapButtonProps) {
         className="transition-all duration-300 ease-out"
         style={{
           opacity: showCount ? 1 : 0,
-          transform: showCount ? "translateY(0) scale(1)" : "translateY(8px) scale(0.8)",
+          transform: showCount
+            ? "translateY(0) scale(1)"
+            : "translateY(8px) scale(0.8)",
         }}
       >
-        <span className="font-mono text-xs text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 inline-block">
+        <span className="text-primary bg-primary/10 border-primary/20 inline-block border px-3 py-1 font-mono text-xs font-bold">
           +{userClaps}
         </span>
       </div>
@@ -175,48 +182,44 @@ export function ClapButton({ slug }: ClapButtonProps) {
         onClick={handleClap}
         disabled={isLoading}
         aria-label={`Clap for this post. ${userClaps} claps given.`}
-        className={`
-          group relative w-16 h-16 flex items-center justify-center
-          border transition-all duration-200 ease-out
-          ${hasClapped
+        className={`group relative flex h-16 w-16 items-center justify-center border transition-all duration-200 ease-out ${
+          hasClapped
             ? "border-primary/40 bg-primary/5"
             : "border-border bg-card/30 hover:border-primary/50 hover:bg-primary/5"
-          }
-          ${isLoading ? "opacity-60 cursor-default" : "cursor-pointer active:scale-90"}
-        `}
+        } ${isLoading ? "cursor-default opacity-60" : "cursor-pointer active:scale-90"} `}
       >
         <span
-          className={`text-3xl select-none transition-transform duration-200 ${isAnimating ? "scale-125" : "scale-100"}`}
+          className={`text-3xl transition-transform duration-200 select-none ${isAnimating ? "scale-125" : "scale-100"}`}
           role="img"
           aria-hidden="true"
         >
           👏
         </span>
         <span
-          className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary/30"
+          className="border-primary/30 absolute top-0 right-0 h-2 w-2 border-t border-r"
           aria-hidden="true"
         />
         <span
-          className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/30"
+          className="border-primary/30 absolute bottom-0 left-0 h-2 w-2 border-b border-l"
           aria-hidden="true"
         />
       </button>
 
-      <div className="text-center space-y-1">
-        <p className="font-mono text-sm font-bold text-foreground tabular-nums">
+      <div className="space-y-1 text-center">
+        <p className="text-foreground font-mono text-sm font-bold tabular-nums">
           {isLoading ? "..." : totalClaps}
         </p>
         {statusMessage ? (
-          <p className="text-[11px] text-primary/85 leading-relaxed max-w-[220px]">
+          <p className="text-primary/85 max-w-[220px] text-[11px] leading-relaxed">
             {statusMessage}
           </p>
         ) : (
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+          <p className="text-muted-foreground font-mono text-[10px] tracking-widest uppercase">
             {isMaxed
               ? "CLAP_REGISTERED_SHARE_IT"
               : hasClapped
-              ? "CLAP_REGISTERED"
-              : "CLAP_TO_APPRECIATE"}
+                ? "CLAP_REGISTERED"
+                : "CLAP_TO_APPRECIATE"}
           </p>
         )}
       </div>

@@ -5,11 +5,14 @@ import { requireAdmin } from "@/lib/auth/authorize";
 import { serializeTags, mapDbToPost } from "@/lib/blog";
 import { validateAndSanitizePostInput } from "@/lib/validation";
 import { sanitizeMarkdown } from "@/lib/security";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitAsync } from "@/lib/rate-limit";
 import { withCsrfProtection } from "@/lib/csrf";
 
 async function handlePost(req: NextRequest) {
-  const rateLimitResult = rateLimit(req, { windowMs: 60000, maxRequests: 20 });
+  const rateLimitResult = await rateLimitAsync(req, {
+    windowMs: 60000,
+    maxRequests: 20,
+  });
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
@@ -110,7 +113,10 @@ async function handlePost(req: NextRequest) {
 export const POST = withCsrfProtection(handlePost);
 
 export async function GET(req: NextRequest) {
-  const rateLimitResult = rateLimit(req, { windowMs: 60000, maxRequests: 60 });
+  const rateLimitResult = await rateLimitAsync(req, {
+    windowMs: 60000,
+    maxRequests: 60,
+  });
   if (!rateLimitResult.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
