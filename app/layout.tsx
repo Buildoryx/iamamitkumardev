@@ -11,7 +11,13 @@ import { Footer } from "@/components/footer";
 import { Settings } from "@/components/settings";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { WebMcpProvider } from "@/components/agents/webmcp-provider";
-import { SITE_HOST, SITE_URL } from "@/lib/site";
+import {
+  MEDIUM_URL,
+  SITE_HOST,
+  SITE_URL,
+  SUBSTACK_URL,
+  X_URL,
+} from "@/lib/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -20,7 +26,9 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const analyticsDomain = process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN;
 const analyticsScriptUrl = process.env.NEXT_PUBLIC_ANALYTICS_SCRIPT_URL;
 
-function isConfiguredAnalyticsScriptUrl(url: string | undefined): url is string {
+function isConfiguredAnalyticsScriptUrl(
+  url: string | undefined,
+): url is string {
   if (!url?.trim()) return false;
   if (/placeholder|your.?script|your_domain/i.test(url)) return false;
   try {
@@ -130,11 +138,12 @@ export default function RootLayout({ children }) {
     email: "hi@iamamitkumar.dev",
     jobTitle: "Developer, Writer, Content Creator",
     sameAs: [
-      "https://x.com/growthperclick",
+      X_URL,
       "https://github.com/ravenrepo",
       "https://www.linkedin.com/in/growthperclick/",
       "https://peerlist.io/growthperclick",
-      "https://substack.com/@growthperclick",
+      SUBSTACK_URL,
+      MEDIUM_URL,
     ],
   };
 
