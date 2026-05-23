@@ -53,7 +53,7 @@ export function NewsletterSignup() {
             placeholder="your@email.com"
             required
             disabled={status === "loading"}
-            className="text-foreground focus:ring-primary disabled:opacity50 flex-1 rounded-md border border-neutral-200 bg-transparent px-4 py-3 placeholder:text-neutral-400 focus:ring-2 focus:outline-none dark:border-neutral-800"
+            className="text-foreground focus:ring-primary disabled:opacity-50 flex-1 rounded-md border border-neutral-200 bg-transparent px-4 py-3 placeholder:text-neutral-400 focus:ring-2 focus:outline-none dark:border-neutral-800"
           />
           <button
             type="submit"
