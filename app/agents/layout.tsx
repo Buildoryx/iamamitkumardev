@@ -47,7 +47,9 @@ const KEYWORDS = [
 ];
 
 export const metadata: Metadata = {
-  title: TITLE,
+  // Use `absolute` so the root template (`%s | Amit Kumar`) does not append
+  // a second " | Amit Kumar" — the page TITLE already includes it.
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: KEYWORDS,
   alternates: {
