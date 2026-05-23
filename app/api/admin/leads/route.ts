@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/authorize";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { listContactInquiries, listNewsletterSubscribers } from "@/lib/leads";
+import { listAgentLeads } from "@/lib/agent-leads";
 
 function parseLimit(value: string | null, fallback = 50) {
   const n = Number(value);
@@ -27,16 +28,20 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const contactLimit = parseLimit(searchParams.get("contactLimit"), 50);
   const newsletterLimit = parseLimit(searchParams.get("newsletterLimit"), 50);
+  const agentsLimit = parseLimit(searchParams.get("agentsLimit"), 50);
 
   try {
-    const [contactInquiries, newsletterSubscribers] = await Promise.all([
-      listContactInquiries(contactLimit),
-      listNewsletterSubscribers(newsletterLimit),
-    ]);
+    const [contactInquiries, newsletterSubscribers, agentLeads] =
+      await Promise.all([
+        listContactInquiries(contactLimit),
+        listNewsletterSubscribers(newsletterLimit),
+        listAgentLeads(agentsLimit),
+      ]);
 
     return NextResponse.json({
       contactInquiries,
       newsletterSubscribers,
+      agentLeads,
     });
   } catch {
     return NextResponse.json(

@@ -129,6 +129,87 @@ export interface Database {
         };
         Relationships: [];
       };
+      agent_leads: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          company: string | null;
+          role: "founder" | "operator" | "engineer" | "other" | null;
+          agent_type:
+            | "personal"
+            | "business_intelligence"
+            | "ops_workflow"
+            | "not_sure";
+          description: string;
+          stage: "idea" | "prototyping" | "in_production";
+          timeline: "this_month" | "one_to_two_months" | "exploring";
+          referral: string | null;
+          source: string;
+          utm_source: string | null;
+          utm_medium: string | null;
+          utm_campaign: string | null;
+          ip: string | null;
+          user_agent: string | null;
+          status: "new" | "contacted" | "qualified" | "won" | "lost" | "spam";
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          company?: string | null;
+          role?: "founder" | "operator" | "engineer" | "other" | null;
+          agent_type:
+            | "personal"
+            | "business_intelligence"
+            | "ops_workflow"
+            | "not_sure";
+          description: string;
+          stage: "idea" | "prototyping" | "in_production";
+          timeline: "this_month" | "one_to_two_months" | "exploring";
+          referral?: string | null;
+          source?: string;
+          utm_source?: string | null;
+          utm_medium?: string | null;
+          utm_campaign?: string | null;
+          ip?: string | null;
+          user_agent?: string | null;
+          status?: "new" | "contacted" | "qualified" | "won" | "lost" | "spam";
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string;
+          company?: string | null;
+          role?: "founder" | "operator" | "engineer" | "other" | null;
+          agent_type?:
+            | "personal"
+            | "business_intelligence"
+            | "ops_workflow"
+            | "not_sure";
+          description?: string;
+          stage?: "idea" | "prototyping" | "in_production";
+          timeline?: "this_month" | "one_to_two_months" | "exploring";
+          referral?: string | null;
+          source?: string;
+          utm_source?: string | null;
+          utm_medium?: string | null;
+          utm_campaign?: string | null;
+          ip?: string | null;
+          user_agent?: string | null;
+          status?: "new" | "contacted" | "qualified" | "won" | "lost" | "spam";
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

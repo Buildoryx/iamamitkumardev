@@ -158,6 +158,25 @@ ${page.body.trim()}
 }
 
 export async function middleware(request: NextRequest) {
+  const url = new URL(request.url);
+  const hostname = (request.headers.get("host") || "").split(":")[0];
+
+  // ---------------------------------------------------------------------------
+  // Subdomain routing: agents.iamamitkumar.dev/* → /agents/*
+  // Preserves /api and /_next so form POSTs and assets still work.
+  // ---------------------------------------------------------------------------
+  if (hostname.startsWith("agents.")) {
+    const isInternal =
+      url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/");
+
+    if (!isInternal && !url.pathname.startsWith("/agents")) {
+      const rewritten = new URL(url.toString());
+      rewritten.pathname =
+        url.pathname === "/" ? "/agents" : `/agents${url.pathname}`;
+      return NextResponse.rewrite(rewritten);
+    }
+  }
+
   if (request.method !== "GET") {
     return NextResponse.next();
   }
@@ -168,7 +187,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const url = new URL(request.url);
   const pathname = url.pathname;
 
   const skipExtensions = [
