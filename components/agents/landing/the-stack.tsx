@@ -35,10 +35,14 @@ const principles = [
 
 export function TheStack() {
   return (
-    <section>
-      <Subheading>The stack</Subheading>
+    <section id="hermes-and-openclaw" aria-labelledby="hermes-and-openclaw-heading">
+      <Subheading className="" >
+        <span id="hermes-and-openclaw-heading">
+          The stack — Hermes &amp; OpenClaw
+        </span>
+      </Subheading>
       <p className="text-foreground mt-3 text-base font-medium md:text-lg">
-        The frameworks I build on, and why it matters.
+        The two open-source frameworks I build on, and why it matters.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

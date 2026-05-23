@@ -15,19 +15,26 @@ export function AgentsHero() {
         transition={SPRING_CONFIG}
         className="text-foreground text-3xl font-medium tracking-tight text-balance md:text-5xl"
       >
-        Production-grade AI agents,
+        Production AI agents on{" "}
+        <span className="text-foreground">Hermes</span> &{" "}
+        <span className="text-foreground">OpenClaw</span>.
         <br />
-        <span className="text-foreground/55">built on open-source.</span>
+        <span className="text-foreground/55">
+          Self-hosted. Model-agnostic. Yours.
+        </span>
       </motion.h1>
 
       <p className="text-foreground mt-6 text-base leading-relaxed md:text-lg md:leading-relaxed">
         I design and ship AI agents on{" "}
-        <span className="text-foreground font-medium">Hermes</span> and{" "}
-        <span className="text-foreground font-medium">OpenClaw</span> —
-        self-hosted, model-agnostic, and tuned to how your business actually
-        runs. Personal AI for founders. Business intelligence agents for teams.
-        Ops agents that live in Telegram, Slack, Discord, or wherever your work
-        happens.
+        <span className="text-foreground font-medium">
+          Hermes (by Nous Research)
+        </span>{" "}
+        and{" "}
+        <span className="text-foreground font-medium">OpenClaw</span> — the two
+        open-source frameworks I&apos;ve bet my own stack on. Self-hosted,
+        model-agnostic, and tuned to how your business actually runs. Personal
+        AI for founders. Business intelligence agents for teams. Ops agents
+        that live in Telegram, Slack, Discord, or wherever your work happens.
       </p>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

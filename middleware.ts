@@ -122,6 +122,92 @@ For the canonical HTML article, visit [${pathname}](${pathname}). Agents can als
     };
   }
 
+  if (pathname === "/agents") {
+    return {
+      title:
+        "Hermes & OpenClaw AI Agents — Production Builds | Amit Kumar",
+      description:
+        "Production AI agents built on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, tuned to your business. Personal AI for founders, business intelligence agents for teams, ops agents in Telegram, Slack, Discord.",
+      body: `I build production-grade AI agents on **Hermes** (by [Nous Research](https://nousresearch.com/)) and **OpenClaw**. Self-hosted. Model-agnostic. Tuned to how your business actually runs.
+
+## The stack — Hermes & OpenClaw
+
+### Hermes Agent (Nous Research, MIT)
+
+Self-improving agent that builds and refines its own skills from experience, remembers across sessions, lives across Telegram, Slack, Discord, WhatsApp, Signal, and CLI from one gateway, runs scheduled crons, and spawns subagents for parallel work. Use any model — OpenAI, Anthropic, OpenRouter, Nous Portal, or your own endpoint.
+
+Repo: <https://github.com/NousResearch/hermes-agent>
+
+### OpenClaw (Peter Steinberger, MIT)
+
+Self-hosted, messaging-first agent framework. Markdown-based memory (\`SOUL.md\`), plugin pipeline, runs on your own hardware. The simplest path to an agent that's actually yours.
+
+Repo: <https://github.com/openclaw/openclaw>
+
+## Why open-source
+
+- **You own the agent.** Your stack, your data, your weights, your bill. Vendor lock-in is a choice, not a necessity.
+- **Any model, any time.** Swap GPT-5 for Claude or Llama in one config line. No rewrites.
+- **It compounds.** Memory and skills accrue inside your system. Every week, your agent gets sharper at *your* work — not someone else's average user.
+
+## What I build
+
+1. **Personal AI assistant.** A senior chief-of-staff in Telegram or Slack. Reads inbox, manages calendar, runs scheduled briefings, remembers everyone you've talked to.
+2. **Business intelligence agent.** Wired into Postgres, Notion, Stripe, GA4, your CRM. Answers in plain English, writes weekly reports, flags anomalies, acts when you say go.
+3. **Ops & workflow agent.** Lead triage, customer support tier-zero, internal RAG, scheduled reports, alert routing, code review companions.
+
+## Who it's for
+
+- Founders & indie hackers who want a personal AI that lives in Telegram and isn't tied to one vendor.
+- Agencies & operators who want agents that actually do the work — hooked into their tools, not floating in a third-party UI.
+- Businesses building intelligence layers — sales copilot, finance reviewer, support tier-zero — behind their own firewall.
+
+## Proof: 14 specialist agents in production on Hermes
+
+A working autonomous agent operating system on a private VPS — continuous uptime, real tasks shipped end-to-end, audit trail for every decision. Identity-first design (\`SOUL.md\` + \`AGENTS.md\`), SQLite kanban for coordination, credential pool with auto-rotation and provider fallback, Discord-first ops with cron, Tailscale-only networking, two-layer memory (recent context + cross-session vector store).
+
+## Hermes vs OpenClaw — which one?
+
+- **Hermes** if you want self-improving agents, scheduled crons, subagent spawning, multi-channel gateway out of the box, and a richer skill system. Model-agnostic.
+- **OpenClaw** if you want the simplest possible self-hosted, messaging-first agent with markdown memory and a plugin pipeline. Easier mental model.
+
+I help you pick on the discovery call.
+
+## How a project runs
+
+1. **Discovery call (20 min, free).** I tell you whether agents are the right answer.
+2. **Scoping doc (within 48 hours).** Fixed-scope plan, no hourly games.
+3. **Build sprint.** First progress in Telegram or Slack within the first week.
+4. **Production hardening.** Approval flows, command allowlists, container isolation, runbook.
+5. **Run, learn, expand.** Optional managed retainer.
+
+## FAQ
+
+- **Will my data leave my infrastructure?** Only if you decide it should. Default deployment is self-hosted on your servers.
+- **Which model?** Hermes is model-agnostic — OpenAI, Anthropic, OpenRouter, Nous Portal, or self-hosted weights. One config change.
+- **Where does the agent live?** Telegram, Slack, Discord, WhatsApp, Signal, CLI, web dashboard — or several at once.
+- **Different from ChatGPT Enterprise / Claude Teams / Zapier agents?** Those are great until you want memory that persists, tools not on the vendor's allowlist, models other than the one they sell you, or your data not crossing their wire.
+- **Timeline?** Most first agents reach a usable v1 in 1–3 weeks. Production hardening adds 1–2 weeks.
+
+## Start a project
+
+- Book a 20-min discovery call: <https://cal.com/growthperclick/discovery-call>
+- Lead form: <https://iamamitkumar.dev/agents#start-a-project>
+- Email: hi@iamamitkumar.dev
+
+## Related reading
+
+- [How to Set Up OpenClaw — A Builder's Honest Setup Guide (2026)](/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026)
+- [How to Build Enterprise-Grade, Production-Ready AI Agents](/blog/how-to-build-enterprise-grade-production-ready-ai-agents)
+- [Why Your AI Agent Pilot Never Makes It to Production](/blog/ai-agent-pilot-to-production)
+
+## Canonical URL
+
+[https://agents.iamamitkumar.dev/](https://agents.iamamitkumar.dev/)
+`,
+    };
+  }
+
   const title = titleFromPath(pathname);
   return {
     title: `${title} | Amit Kumar`,
@@ -163,11 +249,26 @@ export async function middleware(request: NextRequest) {
 
   // ---------------------------------------------------------------------------
   // Subdomain routing: agents.iamamitkumar.dev/* → /agents/*
-  // Preserves /api and /_next so form POSTs and assets still work.
+  // Preserves /api, /_next, and well-known top-level files so that
+  // robots.txt/sitemap.xml/feed.xml/manifest still resolve on the subdomain.
   // ---------------------------------------------------------------------------
   if (hostname.startsWith("agents.")) {
+    const passthroughPaths = new Set([
+      "/robots.txt",
+      "/sitemap.xml",
+      "/feed.xml",
+      "/manifest.webmanifest",
+      "/favicon.ico",
+      "/favicon.png",
+      "/favicon.svg",
+      "/apple-touch-icon.png",
+    ]);
+
     const isInternal =
-      url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/");
+      url.pathname.startsWith("/_next/") ||
+      url.pathname.startsWith("/api/") ||
+      url.pathname.startsWith("/.well-known/") ||
+      passthroughPaths.has(url.pathname);
 
     if (!isInternal && !url.pathname.startsWith("/agents")) {
       const rewritten = new URL(url.toString());
