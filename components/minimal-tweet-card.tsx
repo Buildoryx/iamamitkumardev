@@ -10,13 +10,19 @@ type MinimalTweetCardProps = {
 };
 
 function TweetBody({ tweet }: { tweet: EnrichedTweet }) {
+  // Some tweets (deleted, protected, malformed payloads from the X
+  // syndication API) come back without an entities array. Default to an
+  // empty array so this never throws during static prerender.
+  const entities = tweet.entities ?? [];
+  if (entities.length === 0) return null;
+
   return (
     <p
       className="text-foreground pointer-events-none text-sm leading-snug wrap-break-word whitespace-pre-wrap"
       lang={tweet.lang}
       dir="auto"
     >
-      {tweet.entities.map((item, i) => {
+      {entities.map((item, i) => {
         switch (item.type) {
           case "hashtag":
           case "mention":
@@ -103,7 +109,16 @@ function MediaBlock({ tweet }: { tweet: EnrichedTweet }) {
 }
 
 export function MinimalTweetCard({ tweet, href }: MinimalTweetCardProps) {
-  const enriched = enrichTweet(tweet);
+  // enrichTweet() asserts on shape — if the X syndication API returns a
+  // partial payload it will throw at render time, which fails static
+  // prerender. Fail closed (render nothing) instead of failing the build.
+  let enriched: EnrichedTweet;
+  try {
+    enriched = enrichTweet(tweet);
+  } catch {
+    return null;
+  }
+  if (!enriched?.user) return null;
   const profileUrl = enriched.user.url;
 
   return (

@@ -51,11 +51,32 @@ function getTweetId(url: string) {
   return url.split("/status/")[1]?.split("?")[0] ?? "";
 }
 
+// Re-fetch tweets every 24 hours instead of only at build time. This
+// stops a transient X / syndication-API failure from breaking deploys.
+export const revalidate = 86_400;
+
+async function safeGetTweet(id: string) {
+  if (!id) return null;
+  try {
+    const tweet = await getTweet(id);
+    // Reject tweets that don't have the minimum viable shape — a missing
+    // user or missing id_str means react-tweet's enrichTweet() will throw
+    // when it tries to render. Better to drop the card than fail the build.
+    if (!tweet?.user || !tweet?.id_str) return null;
+    return tweet;
+  } catch (error) {
+    // Log on the server, drop the tweet silently in the UI. We never want
+    // a single deleted / protected / rate-limited tweet to fail the page.
+    console.warn(`[tweets] getTweet(${id}) failed:`, error);
+    return null;
+  }
+}
+
 export default async function TweetsPage() {
   const items = await Promise.all(
     tweetUrls.map(async (url) => {
       const id = getTweetId(url);
-      const tweet = await getTweet(id);
+      const tweet = await safeGetTweet(id);
       return { url, id, tweet };
     }),
   );
