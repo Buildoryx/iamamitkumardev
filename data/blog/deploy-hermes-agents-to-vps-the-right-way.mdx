@@ -1,0 +1,736 @@
+---
+title: "How to Deploy Hermes Agents to a VPS the Right Way: A Production Playbook (₹600/month, 9 Phases, Zero Public Ports)"
+publishedAt: "2026-05-26"
+summary: "Deploy Hermes Agent (Nous Research) to a VPS in 9 phases — Tailscale-only access, systemd timers, credential pool fallback, Discord gateway. Real configs, real failure logs, ₹600/month total cost. From a live multi-day-uptime production setup."
+tags: ["hermes-agent", "ai-agents", "vps-deployment", "self-hosting", "tailscale", "indian-stack", "production-deployment", "systemd", "discord-bot", "build-in-public"]
+---
+
+Most "deploy AI agents to a VPS" tutorials are wrappers around a chat box. You SSH in as root, `pip install` something, run a script in a `tmux` session, and call it production.
+
+That is not production. That is a coin-flip on whether your agent dies the next time the VPS reboots, gets rate-limited, or somebody scans port 22.
+
+I run **a multi-agent stack** on a single **4GB VPS** for under **₹600/month**, with multi-day uptime, zero public ports, and a credential pool that auto-rotates when one provider rate limits me. This post is the exact playbook — the 9 phases I went through, the configs that broke, and the ones that actually held.
+
+If you're an Indian builder trying to deploy [Hermes Agent](https://github.com/NousResearch/hermes-agent) (or any autonomous agent system) to a VPS without it falling over, this is for you.
+
+> **TL;DR:** Buy a 4GB VPS, harden SSH, install Tailscale, lock the firewall to the tailnet, create a system user for agents, install Hermes as that user under a dedicated data directory, ship `SOUL.md` + `AGENTS.md` per profile, configure a credential pool with fallback, run everything under systemd timers, and put one Discord bot in front of an orchestrator. That's the whole thing. The rest is just doing it correctly.
+
+---
+
+## Why most "deploy Hermes to a VPS" guides are wrong
+
+I read 40+ tutorials before building this. Three patterns kept repeating, all broken:
+
+1. **"Just run it in tmux."** Your agent will die on the first reboot. A real agent system needs systemd, not screen scrollback.
+2. **"Open port 3000 for the dashboard."** You just put your kanban DB and credential vault on the public internet. A bot finds it in 6 hours.
+3. **"Use root."** Your agent will eventually `rm -rf` something it shouldn't. Run agents as a system user with `nologin` and a locked password.
+
+The right way isn't harder. It's just *specific*. Below is exactly how the agency stack runs in production today.
+
+---
+
+## What you're actually building
+
+Here's the architecture, end to end:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  YOUR LAPTOP  (Fedora / Mac / WSL)                          │
+│                                                              │
+│  Tailscale (100.x.x.x) ───────→  VPS private IP only        │
+│  SSH ──────────────────────────→  port 22 over tailnet      │
+│  Discord (your phone/laptop) ──→  Discord bot ──→ orchestrator│
+└─────────────────────────────────────────────────────────────┘
+                          │
+                  Tailscale Mesh (WireGuard)
+                          │
+┌─────────────────────────────────────────────────────────────┐
+│  4GB VPS  (Fedora Cloud or Ubuntu LTS, 4 vCPU / 4 GB / 50 GB)│
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  systemd                                              │   │
+│  │   ├── agent-gateway.service       (always-on)         │   │
+│  │   ├── agent-research-refresh.timer (every 6h)         │   │
+│  │   ├── agent-strategy-walk.timer    (3x/day)           │   │
+│  │   ├── agent-builder.timer          (15min cron)       │   │
+│  │   └── agent-verifier.timer         (45min cron)       │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│  /opt/hermes/   ← profiles, vaults, kanban                  │
+│   ├── workspace/profiles/  (per-agent SOUL.md + AGENTS.md)  │
+│   ├── memory/              (vector + holographic)            │
+│   └── kanban.db            (SQLite — center of truth)        │
+│                                                              │
+│  Firewall: tailscale0 → trusted, public → http/https only    │
+│  No SSH on the public internet. Ever.                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+The two non-negotiables:
+
+- **Tailscale is the perimeter.** SSH lives on the tailnet, not the public internet. This single decision removes ~95% of the attack surface a typical VPS has.
+- **systemd owns the agent loops.** Not cron, not tmux, not nohup. systemd survives reboots, isolates services, captures logs to journald, and gives you `systemctl restart` when things wedge.
+
+If you skip either of these you don't have a production deployment. You have a demo that hasn't crashed yet.
+
+---
+
+## The stack and what it costs (₹ breakdown)
+
+Real numbers from a typical multi-agent setup as of May 2026:
+
+| Line item | Provider | Monthly cost (₹) | Notes |
+|---|---|---|---|
+| VPS — 4 vCPU / 4GB RAM / 50GB NVMe | Any reputable provider | ~₹400–₹700 | annual prepay on India-POP providers; works for ~10–15 agents comfortably |
+| Domain | Namecheap / GoDaddy | ~₹100 (avg) | optional, for Caddy reverse proxy if you expose anything |
+| Tailscale | Tailscale | ₹0 | free tier, up to 100 devices |
+| Discord bot | Discord | ₹0 | one bot, one channel, one operator |
+| LLM credentials | Mixed (see below) | ₹0–₹4,000 | depends on usage; most can run on free tiers + 1–2 paid creds |
+| **Total floor** | | **~₹550/mo** | infra only |
+| **Total ceiling** | | **~₹4,500/mo** | with paid LLM credentials |
+
+For comparison: hiring **one** junior dev to baby-sit a content/research workflow at ₹35,000/month is **~63x** more expensive than the infra floor. That's the math the framework is built on.
+
+The LLM cost ceiling is intentional. The credential pool I describe in **Phase 8** is what keeps the floor at ₹0–₹2K/mo even at higher throughput.
+
+---
+
+## The 9 phases: deploy Hermes agents to a VPS
+
+Each phase below maps to a real shell script you'll write or adapt. I'll show the *exact* commands and the *exact* configs. No hand-waving.
+
+### Phase 1 — VPS provisioning
+
+Pick a VPS that gives you Fedora Cloud or Ubuntu LTS, **4GB RAM minimum** (2GB will OOM the moment a vector store loads), 50GB+ disk.
+
+For Indian builders, an India-POP provider gives you ~30ms RTT and rupee-denominated billing — DigitalOcean Bangalore, Linode Mumbai, AWS Mumbai Lightsail, and several local KVM providers all work. Outside India, any provider with full root access is fine — DigitalOcean, Linode, Vultr, Contabo, OVH.
+
+What you don't want: shared hosting, cPanel boxes, anything where you can't `sudo systemctl`. Hermes needs a real Linux box.
+
+After provisioning, you'll have a public IP and root SSH. **Don't use that for anything except the next 10 minutes.**
+
+### Phase 2 — Bootstrap: admin user + SSH hardening
+
+The first thing you do on a fresh VPS is stop being root.
+
+```bash
+# As root, on the VPS
+ADMIN_USER='admin'                                          # pick your own; avoid 'root', 'ubuntu', 'fedora'
+PUBKEY='ssh-ed25519 AAAAC3... your-laptop-key user@laptop'  # paste your laptop's pubkey
+
+useradd -m -G wheel -s /bin/bash "$ADMIN_USER"
+passwd -l "$ADMIN_USER"   # lock password, force key-only
+
+# Passwordless sudo for wheel
+cat > /etc/sudoers.d/10-wheel-nopasswd <<'EOF'
+%wheel ALL=(ALL) NOPASSWD: ALL
+EOF
+chmod 440 /etc/sudoers.d/10-wheel-nopasswd
+
+# Install pubkey
+SSH_DIR="/home/$ADMIN_USER/.ssh"
+install -d -m 700 -o "$ADMIN_USER" -g "$ADMIN_USER" "$SSH_DIR"
+echo "$PUBKEY" > "$SSH_DIR/authorized_keys"
+chmod 600 "$SSH_DIR/authorized_keys"
+chown "$ADMIN_USER:$ADMIN_USER" "$SSH_DIR/authorized_keys"
+```
+
+Then drop the SSH hardening config (don't touch the main `sshd_config` — use a drop-in):
+
+```bash
+mkdir -p /etc/ssh/sshd_config.d
+cat > /etc/ssh/sshd_config.d/00-hardening.conf <<'EOF'
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+X11Forwarding no
+PermitEmptyPasswords no
+MaxAuthTries 3
+LoginGraceTime 30
+ClientAliveInterval 300
+ClientAliveCountMax 2
+Protocol 2
+EOF
+
+sshd -t && systemctl restart sshd
+```
+
+**Critical step:** in a *new* terminal, log in as your admin user (`ssh admin@<vps-ip>`), run `sudo whoami`, confirm it returns `root`. **Only then** close the original root session. If anything is broken, you're going to need that root session to fix it.
+
+### Phase 3 — System hardening (fail2ban, swap, auditd)
+
+This is the part most tutorials skip. It's also the part that decides whether your VPS survives a script kiddie scan.
+
+```bash
+# fail2ban — bans IPs after 3 failed SSH attempts
+dnf install -y fail2ban
+cat > /etc/fail2ban/jail.local <<'EOF'
+[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 3
+backend  = systemd
+ignoreip = 127.0.0.1/8 ::1
+
+[sshd]
+enabled  = true
+port     = ssh
+logpath  = %(sshd_log)s
+EOF
+systemctl enable --now fail2ban
+
+# dnf-automatic — security patches only, no auto-reboot
+dnf install -y dnf-automatic
+sed -i \
+  -e 's/^upgrade_type =.*/upgrade_type = security/' \
+  -e 's/^apply_updates =.*/apply_updates = yes/' \
+  /etc/dnf/automatic.conf
+systemctl enable --now dnf-automatic.timer
+
+# Persistent journald with size cap (so logs don't eat your disk)
+mkdir -p /etc/systemd/journald.conf.d
+cat > /etc/systemd/journald.conf.d/00-persistent.conf <<'EOF'
+[Journal]
+Storage=persistent
+SystemMaxUse=500M
+SystemKeepFree=1G
+MaxRetentionSec=2week
+Compress=yes
+EOF
+systemctl restart systemd-journald
+
+# Swap (4GB — for spikes when memory provider does fact extraction)
+fallocate -l 4G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile && swapon /swapfile
+echo "/swapfile none swap defaults 0 0" >> /etc/fstab
+echo 'vm.swappiness=10' > /etc/sysctl.d/99-swappiness.conf
+sysctl -p /etc/sysctl.d/99-swappiness.conf
+
+# auditd — for forensics when something does go wrong
+dnf install -y audit && systemctl enable --now auditd
+```
+
+The swap is non-optional. The first time my vector store memory ran LLM fact extraction with 800 findings in the queue, the agent OOM'd and systemd restarted it into a loop. 4GB swap fixed it. Don't learn this the way I did.
+
+### Phase 4 — Tailscale: the actual perimeter
+
+This is the most important phase. Get this right and you can stop worrying about firewalls. Get this wrong and you're back to opening ports.
+
+```bash
+# Install Tailscale (Fedora)
+dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+dnf install -y tailscale
+systemctl enable --now tailscaled
+
+# Auth into your tailnet (interactive — opens a browser link)
+tailscale up --ssh --advertise-tags=tag:vps
+```
+
+Now lock SSH to the tailnet **only**:
+
+```bash
+TS_V4="100.64.0.0/10"     # Tailscale CGNAT range
+TS_V6="fd7a:115c:a1e0::/48"
+
+# Trusted zone = full access from tailnet
+firewall-cmd --permanent --zone=trusted --add-source="$TS_V4"
+firewall-cmd --permanent --zone=trusted --add-source="$TS_V6"
+firewall-cmd --permanent --zone=trusted --change-interface=tailscale0
+
+# Public zone = nothing (or http/https if you ever expose Caddy)
+firewall-cmd --permanent --zone=public --remove-service=ssh
+firewall-cmd --permanent --zone=public --remove-service=mdns
+firewall-cmd --permanent --zone=public --remove-service=dhcpv6-client
+firewall-cmd --reload
+```
+
+After this:
+
+- `nmap` from the public internet sees **zero open ports** (except whatever you explicitly add — http/https for production sites).
+- `ssh admin@100.x.x.x` from any tailnet member works as if you're on the same LAN.
+- Your VPS is invisible from `shodan.io`. Worth verifying yourself with a fresh scan after lockdown.
+
+ > **Indian compliance angle:** if your agents touch any user data subject to **DPDP Act 2023**, this Tailscale-only setup also gives you a defensible audit trail: only authenticated mesh members can reach the box, and Tailscale's logs show exactly who connected when. Your DPO will thank you.
+
+### Phase 5 — Foundation: system users, data dir, toolchains
+
+Don't run agents as your admin user. Don't run them as root. Create a dedicated `agents` system user with `nologin` and a locked password.
+
+```bash
+useradd --system \
+        --create-home \
+        --home-dir /var/lib/hermes \
+        --shell /usr/sbin/nologin \
+        --comment "Agent runtime user" \
+        agents
+passwd -l agents
+usermod -aG agents admin   # so your admin user can read/edit agent files
+
+# /opt/hermes — setgid, group-writable, all agent state lives here
+install -d -m 2775 -o agents -g agents /opt/hermes
+install -d -m 2775 -o agents -g agents /opt/hermes/workspace
+install -d -m 2775 -o agents -g agents /opt/hermes/memory
+install -d -m 2775 -o agents -g agents /opt/hermes/sessions
+install -d -m 2775 -o agents -g agents /opt/hermes/cron
+install -d -m 2775 -o agents -g agents /opt/hermes/logs
+
+# SELinux: tag the whole tree as var_lib_t
+semanage fcontext -a -t var_lib_t "/opt/hermes(/.*)?" 2>/dev/null || \
+  semanage fcontext -m -t var_lib_t "/opt/hermes(/.*)?"
+restorecon -Rv /opt/hermes
+
+# Toolchains: Python 3.12 + uv, Node + pnpm, Podman, build tools
+dnf install -y python3.12 python3.12-devel nodejs npm \
+               podman podman-compose slirp4netns fuse-overlayfs \
+               git just jq ripgrep fd-find sqlite sqlite-devel \
+               gcc gcc-c++ make pkg-config
+
+curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet
+install -m 755 /root/.local/bin/uv /usr/local/bin/uv
+npm install -g pnpm
+
+# Allow agents user to run lingering systemd services (Discord bot stays up)
+loginctl enable-linger agents
+```
+
+The `2775` mode (setgid + group-writable) is what lets your admin user edit `SOUL.md` files in the agent profile dirs without sudo every time. The `loginctl enable-linger agents` is what lets the Discord gateway survive your SSH disconnect — without it, the bot dies the moment you log out.
+
+### Phase 6 — Install Hermes runtime
+
+This is the part with the actual `hermes` binary. Install it as the `agents` user, with `HERMES_HOME` pointing to your data directory.
+
+```bash
+AGENTS_HOME=/var/lib/hermes
+HERMES_HOME=/opt/hermes
+
+# Symlink ~/.hermes -> /opt/hermes so both paths resolve
+sudo -u agents bash -c "ln -snf $HERMES_HOME ~/.hermes"
+
+# Run the official installer (skip interactive setup, skip browser/Playwright)
+INSTALLER=/tmp/hermes-install.sh
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh -o "$INSTALLER"
+chmod 755 "$INSTALLER"
+chown agents:agents "$INSTALLER"
+
+sudo -u agents -H env \
+    HOME="$AGENTS_HOME" \
+    HERMES_HOME="$HERMES_HOME" \
+    bash "$INSTALLER" --skip-setup --skip-browser
+
+# System-wide symlink so 'hermes' works in any shell
+ln -snf "$AGENTS_HOME/.local/bin/hermes" /usr/local/bin/hermes
+
+# Verify
+sudo -u agents -H env HOME="$AGENTS_HOME" HERMES_HOME="$HERMES_HOME" \
+    /usr/local/bin/hermes --version
+```
+
+Two flags worth knowing:
+
+- `--skip-setup` — Hermes' interactive wizard wants to ask you questions about which models to use. We're configuring via `.env` files instead, so skip.
+- `--skip-browser` — don't pull Playwright + Chromium yet. Add it later only if a specific agent needs browser tools. Saves ~400MB.
+
+### Phase 7 — Profiles: SOUL.md + AGENTS.md per agent
+
+This is the part that turns "Hermes" from a runtime into an *agent OS*. Each profile gets two files:
+
+- **`SOUL.md`** — identity, hard limits, tone. ~150-300 lines. Loaded into every session. Defines who the agent IS and what it refuses to do.
+- **`AGENTS.md`** — operating manual. ~200-450 lines. Mission, data paths, task taxonomy, decision process, cross-agent collaboration matrix.
+
+Folder layout (use whatever role names fit your stack):
+
+```
+/opt/hermes/workspace/profiles/
+├── orchestrator/    # operator-facing, owns outcomes, delegates
+│   ├── SOUL.md
+│   ├── AGENTS.md
+│   ├── config.yaml
+│   └── runbooks/    # markdown procedures the agent reads at runtime
+├── researcher/      # always-on evidence collector
+│   ├── SOUL.md
+│   ├── AGENTS.md
+│   └── runbooks/
+│       ├── refresh-vault.md
+│       ├── collect-feed.md
+│       └── trends.md
+├── builder/         # bounded executor
+├── verifier/        # independent QA gate
+├── publisher/       # seed → draft → humanize → editor → post receipt
+└── ... (as many as your workflow needs)
+```
+
+The `SOUL.md` pattern that holds under pressure looks like this — opening with a tight identity statement, then enumerating *hard limits* the agent will refuse to cross, then defining a confidence taxonomy and tone:
+
+```markdown
+# <Role> — SOUL
+
+You are a specialist with a defined mandate, hard limits, and a way of
+working that you do not abandon under pressure.
+
+You operate ONLY within these boundaries. You do not:
+- <hard limit 1>
+- <hard limit 2>
+- <hard limit 3>
+
+When asked to do something outside your mandate, you say no and route
+to the right agent — you do not improvise.
+```
+
+The "test": ask the agent "are you allowed to <thing outside its mandate>?" → reply: **"No."** Identity holds because it's reloaded into context on every session.
+
+I won't paste full files here — they typically run to a few thousand lines across a stack — but the canonical structure is in my [public agent OS playbook](https://iamamitkumar.dev/blog/how-to-build-enterprise-grade-production-ready-ai-agents). Steal the shape, write your own contents.
+
+### Phase 8 — Reliability: credential pool + fallback chain
+
+This is the phase that decides whether your agent system survives the second day.
+
+LLM rate limits are the ops nightmare of agent systems. One free-tier 429 and the entire agency stops. The fix is two-layer:
+
+**1. Credential pool** — multiple keys per provider, runtime auto-rotates on 429:
+
+| Provider tier | Credentials | Notes |
+|---|---|---|
+| Primary chat LLM | 2–4 | rotated on 429 |
+| Secondary / cheaper LLM | 1–2 | fallback when primary throttles |
+| Free-tier embeddings | 1 | for vector store ingestion |
+| Free-tier specialty | 1 | for fact extraction / lightweight tasks |
+| Paid escape hatch | 1 | last-resort, costs real money |
+
+The exact provider names will depend on what your account roster supports — OpenRouter, Anthropic, Together, Groq, NVIDIA NIM, Mistral, Qwen, DeepSeek and similar all work. Treat the *tiers* as the contract; swap the actual providers under them as the market shifts.
+
+**2. Fallback chain** — when a whole provider exhausts, the runtime jumps to the next:
+
+```yaml
+# /opt/hermes/workspace/profiles/orchestrator/config.yaml
+fallback_providers:
+  - provider: <primary-provider>
+    model: <primary-model>
+  - provider: <secondary-provider>
+    model: <secondary-model>
+  - provider: openrouter
+    model: deepseek/deepseek-chat:free
+  - provider: <free-tier-provider>
+    model: <small-fast-model>
+  - provider: <paid-escape-hatch>
+    model: <strong-model>
+```
+
+Real behaviour I've observed in logs (provider names redacted):
+
+```
+primary provider rate limited → rotated cred 1 of 3 → exhausted
+                              → rotated cred 2 of 3 → exhausted
+                              → rotated cred 3 of 3 → exhausted
+PROVIDER exhausted → fallback to secondary  → SUCCESS
+                   → continued the agent's work
+```
+
+The agent never knew. The session continued. **This is what reliability looks like in production.** Demo videos won't show you this part because they don't run long enough to hit it.
+
+### Phase 9 — Systemd timers + always-on gateway
+
+Now wire it all up to systemd. One always-on service (the gateway, which embeds the kanban dispatcher and Discord bot), plus N timers for the recurring loops.
+
+The gateway service:
+
+```ini
+# /etc/systemd/system/agent-gateway.service
+[Unit]
+Description=Agent gateway (Discord + kanban dispatcher)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agents
+Group=agents
+WorkingDirectory=/var/lib/hermes
+Environment=HOME=/var/lib/hermes
+Environment=HERMES_HOME=/opt/hermes
+ExecStart=/usr/local/bin/hermes gateway start --profile orchestrator
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+A recurring agent loop (e.g. a research refresh, every 6 hours):
+
+```ini
+# /etc/systemd/system/agent-research-refresh.service
+[Unit]
+Description=Research agent — refresh vault from collectors
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=agents
+Group=agents
+WorkingDirectory=/var/lib/hermes
+Environment=HOME=/var/lib/hermes
+Environment=HERMES_HOME=/opt/hermes
+ExecStart=/bin/bash -lc 'cd /opt/hermes/workspace/profiles/researcher && python scripts/refresh.py --mode refresh'
+TimeoutSec=1800
+
+# /etc/systemd/system/agent-research-refresh.timer
+[Unit]
+Description=Schedule for research refresh
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:00:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable everything:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now agent-gateway.service
+sudo systemctl enable --now agent-research-refresh.timer
+# repeat for each per-agent timer you write
+```
+
+Watch the logs in real time:
+
+```bash
+sudo journalctl -u agent-gateway.service -f
+systemctl list-timers 'agent-*'
+```
+
+Your VPS now wakes up agents on a schedule, the gateway watches Discord, the kanban dispatcher claims tasks atomically every 60s, and the credential pool keeps the LLM calls flowing through 429s.
+
+That's the deployment.
+
+---
+
+## What broke (and how I fixed it): the failure log
+
+Five things hit me in the first 30 days of running this in production. If you skip this section you'll re-discover all of them yourself, on your time, in your panic.
+
+### 1. Reddit OAuth blocked the VPS IP
+
+Day 4. Research agent was happily collecting from HackerNews, GitHub, RSS — but every Reddit pull returned `403 Blocked`.
+
+**Root cause:** Reddit blocks unauthenticated API requests from VPS IP ranges (most cloud providers). Their anti-scraping is IP-based.
+
+**Fix:** Switched to app-only OAuth. Created a Reddit app, used the script-mode flow, baked the refresh token into `.env`. Filed the developer policy approval — got it in 18 days.
+
+**Prevention:** any data source with anti-scrape ranking (Reddit, X, LinkedIn) — assume VPS-blocked by default. Authenticate first, scrape never.
+
+### 2. NVIDIA NIM embeddings broke with `input_type` error
+
+Day 9. Vector store memory layer (Mem0-equivalent) started returning `400 Bad Request: missing required parameter input_type` on every embedding call.
+
+**Root cause:** NVIDIA NIM's `nv-embedqa-e5-v5` requires an `input_type` parameter ("passage" for indexing, "query" for retrieval) that the OpenAI SDK doesn't send because it's not in the OpenAI spec.
+
+**Fix:** Switched the embedder to local `sentence-transformers` (`all-MiniLM-L6-v2`). Runs on CPU, ~50ms/embedding, no API quotas. Kept NVIDIA NIM as the *LLM* for fact extraction (where it does follow OpenAI spec).
+
+**Prevention:** if your embedder isn't OpenAI/Voyage/Cohere, test the SDK contract before relying on it. Local embedders are almost always the right answer for vector store memory at agency scale.
+
+### 3. Discord bot "platform lock" — two gateways, one token
+
+Day 12. I tried running a *second* gateway (a different profile) with the same Discord bot to see if I could route messages from a different channel.
+
+**Symptom:** the original gateway died with a cryptic "session invalidated" error every time the second gateway started.
+
+**Root cause:** Discord bot tokens have a single-instance lock. Two gateways cannot share a token — only one connects, the other kills the existing session, then both fight for it forever.
+
+**Fix:** one bot, one gateway. Period. The orchestrator handles all operator interaction; specialists communicate via kanban tasks, not their own bots.
+
+**Prevention:** if you want multiple Discord-facing agents, you need multiple bots and multiple tokens, each in its own systemd service. But really — you want one. Specialists shouldn't compete for operator attention. The orchestrator synthesizes.
+
+### 4. Free-tier rate limit cascades on credential rotation
+
+Day 17. Credential pool was working — but I had only **one** credential per provider, so when one exhausted, the fallback chain fired, but the *next* provider also had only one credential, and it exhausted within minutes.
+
+**Symptom:** 6 hours of agent work completed in 20 minutes, then the entire stack went silent for 18 hours waiting for free-tier resets.
+
+**Fix:** added 2–3 credentials per provider, where each provider's terms allow it (read the ToS — most allow multiple keys per account; some allow multiple accounts per email domain; a few don't). Stack the cheap/free providers wider; keep the paid escape hatch as the last resort.
+
+**Prevention:** each new credential = another fallback option. Adding a credential is one config line. **Don't run any agent system on free tier with only one cred per provider.** It's not a question of *if* it'll cascade, just *when*.
+
+### 5. Skill discovery vs runbooks
+
+Day 21. A new agent profile was supposed to use a markdown runbook. The agent kept calling `skill_view <runbook-name>`, getting "skill not found", and giving up.
+
+**Root cause:** Hermes' built-in skill system auto-registers Python skills under `skills/`. Runbooks are just markdown files in `runbooks/` — the agent doesn't auto-discover them as skills.
+
+**Fix:** added an explicit "Runbooks" section to the agent's `AGENTS.md`:
+
+```markdown
+## Runbooks
+
+You have markdown procedures in `runbooks/`. To execute one:
+1. Read the file directly with the file_read tool
+2. Follow the steps using bash, curl, jq, python
+3. DO NOT call skill_view — runbooks are not skills
+
+Available runbooks:
+- runbooks/<name-1>.md — when asked to <do thing 1>
+- runbooks/<name-2>.md — when asked to <do thing 2>
+- runbooks/<name-3>.md — when asked to <do thing 3>
+```
+
+After that, the agent reads runbooks correctly on the first try.
+
+**Prevention:** if your agent has both skills and runbooks, *explicitly tell it the difference* in `AGENTS.md`. Don't expect the LLM to figure it out from directory names.
+
+---
+
+## Verification: did this actually work?
+
+Run these checks. If any of them fail, your deployment is not done.
+
+```bash
+# 1. Public ports are 0 (or just http/https if you exposed Caddy)
+sudo nmap -sT -p- 127.0.0.1            # from VPS itself, see local
+# from your laptop OFF the tailnet, scan the public IP — should see nothing
+
+# 2. SSH only works over tailnet
+ssh admin@<public-ip>      # should HANG, then time out
+ssh admin@<tailscale-ip>   # should connect
+
+# 3. Gateway service is running
+sudo systemctl status agent-gateway.service
+# Active: active (running) since X minutes/days ago
+
+# 4. All timers loaded
+systemctl list-timers 'agent-*'
+# Should show NEXT-fire times for each agent loop
+
+# 5. Discord bot is connected
+# Send a message in your private channel — bot should reply within 2-3s
+
+# 6. Kanban dispatcher is alive
+sudo journalctl -u agent-gateway.service | grep "dispatcher"
+# Should see "claimed task" / "task complete" entries
+
+# 7. Credential pool is loaded
+sudo -u agents -H env HOME=/var/lib/hermes HERMES_HOME=/opt/hermes \
+    /usr/local/bin/hermes auth status
+# Should show all configured providers with cred counts
+
+# 8. fail2ban is watching
+sudo fail2ban-client status sshd
+```
+
+Eight greens = production-deployed.
+
+---
+
+## What this stack does *not* do (and what to add)
+
+I want to be honest about the boundaries of this playbook. As-is, this gets you:
+
+- ✅ A multi-agent stack running on a single VPS, multi-day uptime
+- ✅ Discord operator interface (one bot, one channel)
+- ✅ Credential pool + fallback chain
+- ✅ Kanban-coordinated task graph
+- ✅ Persistent memory (holographic + vector)
+- ✅ Tailscale-only access, zero public ports
+
+It does NOT yet give you:
+
+- ❌ Public web dashboard (add Caddy + Tailscale Funnel if you want one)
+- ❌ Multi-VPS HA / failover (single VPS is fine for solo founder; add HAProxy + a second box at higher scale)
+- ❌ GPU inference (this stack uses *hosted* LLMs only; if you want local Llama 70B, you need a GPU box and `vllm`/`ollama`)
+- ❌ Automated DR (back up `/opt/hermes` to S3-compatible storage; one rsync job is enough)
+- ❌ DPDP/GDPR-ready data lifecycle (the framework is logging-first, but you still need explicit retention policies in each agent's `AGENTS.md`)
+
+Phase 10 (which I'll publish separately) is **observability + backup** — Caddy reverse proxy on Tailscale Funnel, `rclone` to Backblaze B2 for ₹50/mo cold storage, and Grafana for the metrics that matter.
+
+---
+
+## Frequently asked questions
+
+The questions I keep getting in DMs and replies. Bookmarked here for future-you.
+
+### What is Hermes Agent?
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) is an open-source agent runtime by Nous Research. It handles per-profile sessions, tool execution, persistent memory, kanban coordination, credential management, and a Discord/Slack/Telegram gateway. Think of it as the OS layer underneath your specialist agents — you write the `SOUL.md` and `AGENTS.md`, Hermes runs them.
+
+### Can I deploy Hermes agents to a $5/month VPS?
+
+Technically yes, practically no. A 1GB RAM VPS will OOM the moment a vector store loads or fact extraction runs. **Minimum 4GB RAM** for a real agent system. For Indian builders, India-POP providers like DigitalOcean Bangalore, Linode Mumbai or AWS Mumbai Lightsail give you a 4GB VPS in the ₹400–700/mo range. Outside India, DigitalOcean's $24 droplet (4GB RAM) is the equivalent.
+
+### Why use Tailscale instead of just opening firewall ports?
+
+Three reasons:
+
+1. **Zero public attack surface.** `nmap` from the internet sees nothing. `shodan.io` doesn't index your box.
+2. **Identity-based ACLs.** Only your tailnet members can reach the VPS — not just "anyone with the IP".
+3. **No port forwarding, no dynamic DNS.** Your laptop's Tailscale IP is stable; your VPS's Tailscale IP is stable; nothing breaks when your home IP changes.
+
+For Indian builders, this is also a clean answer to the "where does our admin access come from?" question that DPDP audits will eventually ask.
+
+### How much does it cost to run Hermes agents on a VPS?
+
+For a typical multi-agent setup on free-tier LLM credentials:
+
+- **Floor:** ~₹550/month (VPS + domain only)
+- **Ceiling:** ~₹4,500/month (with 2-3 paid credentials for higher throughput)
+
+Compare to one junior dev at ₹35,000/month doing the same content+research+QA workflow manually. The ROI math is the actual product here.
+
+### Does Hermes Agent need a GPU?
+
+No. Hermes calls hosted LLMs (OpenAI, Anthropic, OpenRouter, Together, NVIDIA NIM, etc.) — none of that runs on the VPS. The VPS just orchestrates calls and stores outputs. You only need a GPU if you want to run *local* models (Llama 70B, Qwen 32B), which is a separate decision — most people don't until they hit either privacy or cost-per-token thresholds.
+
+### How do I prevent rate limits from killing my agents?
+
+Two layers, both essential (Phase 8):
+
+1. **Credential pool** — 2-3 credentials per provider, runtime auto-rotates on 429.
+2. **Fallback chain** — when a whole provider exhausts, jump to the next provider in the chain.
+
+Don't ship with one cred per provider. It will cascade-fail within a week of agency-scale traffic, and you'll spend 18 hours waiting for free-tier resets while your agents are silent.
+
+### Can I use Ubuntu instead of Fedora?
+
+Yes. The scripts above use `dnf` — replace with `apt` for Ubuntu/Debian. Everything else (systemd, Tailscale, Hermes installer) is distro-agnostic. The SELinux `semanage` step becomes AppArmor on Ubuntu, but for an agent VPS without public services you can skip MAC entirely as long as the firewall is locked down.
+
+### What's the difference between Hermes Agent and OpenClaw?
+
+Hermes Agent (Nous Research) is the runtime — sessions, tools, memory, kanban, gateway. [OpenClaw](https://iamamitkumar.dev/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026) is a related framework with overlapping ideas; this playbook focuses on Hermes because it's the most active ecosystem to build on right now. The architecture (SOUL.md + AGENTS.md + runbooks + kanban + Discord) is *runtime-portable* — the same shape works on top of any framework with per-profile sessions and tool execution.
+
+### How do I deploy Hermes agents for an Indian client (DPDP-aware)?
+
+The TL;DR for DPDP Act 2023 compliance with this stack:
+
+1. **Data residency:** an India-POP VPS keeps the box in-country. Tailscale traffic is encrypted, but sensitive data shouldn't leave India unless you're using a hosted LLM with India region (most don't have one yet — log this in your DPIA).
+2. **Audit trail:** events log + kanban + journald give you a 4-layer audit. Retain for the policy period (typically 3 years for financial/health, 1 year for general).
+3. **Right to erasure:** add a runbook (`erase-user-data.md`) that purges by user ID across vault + memory + kanban. Test it before a regulator asks.
+4. **DPO accountability:** name a DPO in your orchestrator's `AGENTS.md`. Pipe DSAR (data subject access requests) to a specific kanban queue.
+
+This is not legal advice. Get a lawyer for the actual compliance memo. But the architecture above is *capable* of DPDP compliance — most demo-grade VPS deployments aren't.
+
+---
+
+## Closing: what to do next
+
+If you've read this far, you don't need motivation, you need sequencing. Here's the 7-day plan:
+
+- **Day 1:** Buy the VPS. Phase 1 + 2 (provision + bootstrap). Get to "ssh admin@vps without password" before sleep.
+- **Day 2:** Phase 3 + 4. Harden, install Tailscale, kill public SSH. Verify with `nmap` from off-tailnet.
+- **Day 3:** Phase 5 + 6. System users, Hermes installer. Verify `hermes --version` runs as `agents`.
+- **Day 4-5:** Phase 7. Write `SOUL.md` + `AGENTS.md` for *one* agent (start with the orchestrator). Don't try to build the full stack in one go.
+- **Day 6:** Phase 8. Credential pool. At minimum 2 creds per provider. Test by deliberately exhausting one.
+- **Day 7:** Phase 9. systemd timers. Discord bot. Send the first message. Watch the journal.
+
+By day 7 you have a production-grade Hermes deployment that survives reboots, rate limits, and SSH disconnects. By month 1 you have a failure log of your own — that's when this work compounds.
+
+Bookmark this page. The next time someone tells you "AI agents on a VPS aren't production-ready," send them here and let them argue with the systemd timers.
+
+---
+
+*If this playbook saved you a weekend, [follow me on X](https://x.com/growthperclick) for more candid implementer write-ups — the failures, the configs, and the ₹ math behind running agent systems out of India. Questions? Reply on the X thread for this article and I'll answer in detail. Building in public is more useful when the public actually gets the build.*
