@@ -56,10 +56,14 @@ export async function POST(req: NextRequest) {
 
         let coverImage: string | null = null;
         const coverFile = props["Cover Image URL"]?.files?.[0];
+        const coverUrl = props["Cover Image URL"]?.url;
         if (coverFile) {
           coverImage = coverFile.type === "external"
             ? coverFile.external.url
             : coverFile.file.url;
+        } else if (coverUrl) {
+          // Cover Image URL column is configured as a `url` property, not `files`.
+          coverImage = coverUrl;
         } else if (page.cover) {
           coverImage = page.cover.type === "external"
             ? page.cover.external.url
