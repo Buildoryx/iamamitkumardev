@@ -28,6 +28,9 @@ pnpm-debug.log*
 # local env files
 .env
 .env.local
+
+# distribution drafts (Substack / Medium / X / LinkedIn cross-posting copy — kept local)
+/drafts/
 .env.development.local
 .env.test.local
 .env.production.local
