@@ -1,7 +1,7 @@
 ---
-title: "How to Deploy Hermes Agents to a VPS the Right Way: A Production Playbook (₹600/month, 9 Phases, Zero Public Ports)"
+title: "How to Deploy Hermes Agents to a VPS the Right Way: A Production Playbook (Under $10/month, 9 Phases, Zero Public Ports)"
 publishedAt: "2026-05-26"
-summary: "Deploy Hermes Agent (Nous Research) to a VPS in 9 phases — Tailscale-only access, systemd timers, credential pool fallback, Discord gateway. Real configs, real failure logs, ₹600/month total cost. From a live multi-day-uptime production setup."
+summary: "Deploy Hermes Agent (Nous Research) to a VPS in 9 phases — Tailscale-only access, systemd timers, credential pool fallback, Discord gateway. Real configs, real failure logs, under $10/month total cost. From a live multi-day-uptime production setup."
 tags: ["hermes-agent", "ai-agents", "vps-deployment", "self-hosting", "tailscale", "indian-stack", "production-deployment", "systemd", "discord-bot", "build-in-public"]
 ---
 
@@ -9,7 +9,7 @@ Most "deploy AI agents to a VPS" tutorials are wrappers around a chat box. You S
 
 That is not production. That is a coin-flip on whether your agent dies the next time the VPS reboots, gets rate-limited, or somebody scans port 22.
 
-I run **a multi-agent stack** on a single **4GB VPS** for under **₹600/month**, with multi-day uptime, zero public ports, and a credential pool that auto-rotates when one provider rate limits me. This post is the exact playbook — the 9 phases I went through, the configs that broke, and the ones that actually held.
+I run **a multi-agent stack** on a single **4GB VPS** for under **$10/month**, with multi-day uptime, zero public ports, and a credential pool that auto-rotates when one provider rate limits me. This post is the exact playbook — the 9 phases I went through, the configs that broke, and the ones that actually held.
 
 If you're an Indian builder trying to deploy [Hermes Agent](https://github.com/NousResearch/hermes-agent) (or any autonomous agent system) to a VPS without it falling over, this is for you.
 
@@ -75,23 +75,23 @@ If you skip either of these you don't have a production deployment. You have a d
 
 ---
 
-## The stack and what it costs (₹ breakdown)
+## The stack and what it costs (USD breakdown)
 
 Real numbers from a typical multi-agent setup as of May 2026:
 
-| Line item | Provider | Monthly cost (₹) | Notes |
+| Line item | Provider | Monthly cost (USD) | Notes |
 |---|---|---|---|
-| VPS — 4 vCPU / 4GB RAM / 50GB NVMe | Any reputable provider | ~₹400–₹700 | annual prepay on India-POP providers; works for ~10–15 agents comfortably |
-| Domain | Namecheap / GoDaddy | ~₹100 (avg) | optional, for Caddy reverse proxy if you expose anything |
-| Tailscale | Tailscale | ₹0 | free tier, up to 100 devices |
-| Discord bot | Discord | ₹0 | one bot, one channel, one operator |
-| LLM credentials | Mixed (see below) | ₹0–₹4,000 | depends on usage; most can run on free tiers + 1–2 paid creds |
-| **Total floor** | | **~₹550/mo** | infra only |
-| **Total ceiling** | | **~₹4,500/mo** | with paid LLM credentials |
+| VPS — 4 vCPU / 4GB RAM / 50GB NVMe | Any reputable provider | ~$5–$9 | annual prepay; works for ~10–15 agents comfortably |
+| Domain | Namecheap / GoDaddy | ~$1 (avg) | optional, for Caddy reverse proxy if you expose anything |
+| Tailscale | Tailscale | $0 | free tier, up to 100 devices |
+| Discord bot | Discord | $0 | one bot, one channel, one operator |
+| LLM credentials | Mixed (see below) | $0–$50 | depends on usage; most can run on free tiers + 1–2 paid creds |
+| **Total floor** | | **~$7/mo** | infra only |
+| **Total ceiling** | | **~$55/mo** | with paid LLM credentials |
 
-For comparison: hiring **one** junior dev to baby-sit a content/research workflow at ₹35,000/month is **~63x** more expensive than the infra floor. That's the math the framework is built on.
+For comparison: hiring **one** content/research/QA contractor at ~$3,000/month is **~400x** more expensive than the infra floor — and still **~55x** more than the ceiling. That's the math the framework is built on.
 
-The LLM cost ceiling is intentional. The credential pool I describe in **Phase 8** is what keeps the floor at ₹0–₹2K/mo even at higher throughput.
+The LLM cost ceiling is intentional. The credential pool I describe in **Phase 8** is what keeps the floor at $0–$25/mo even at higher throughput.
 
 ---
 
@@ -103,7 +103,7 @@ Each phase below maps to a real shell script you'll write or adapt. I'll show th
 
 Pick a VPS that gives you Fedora Cloud or Ubuntu LTS, **4GB RAM minimum** (2GB will OOM the moment a vector store loads), 50GB+ disk.
 
-For Indian builders, an India-POP provider gives you ~30ms RTT and rupee-denominated billing — DigitalOcean Bangalore, Linode Mumbai, AWS Mumbai Lightsail, and several local KVM providers all work. Outside India, any provider with full root access is fine — DigitalOcean, Linode, Vultr, Contabo, OVH.
+For builders in Asia, an India-POP provider gives you ~30ms RTT and well-priced annual prepay options — DigitalOcean Bangalore, Linode Mumbai, AWS Mumbai Lightsail, and several local KVM providers all work. Outside that region, any provider with full root access is fine — DigitalOcean, Linode, Vultr, Contabo, OVH.
 
 What you don't want: shared hosting, cPanel boxes, anything where you can't `sudo systemctl`. Hermes needs a real Linux box.
 
@@ -647,7 +647,7 @@ It does NOT yet give you:
 - ❌ Automated DR (back up `/opt/hermes` to S3-compatible storage; one rsync job is enough)
 - ❌ DPDP/GDPR-ready data lifecycle (the framework is logging-first, but you still need explicit retention policies in each agent's `AGENTS.md`)
 
-Phase 10 (which I'll publish separately) is **observability + backup** — Caddy reverse proxy on Tailscale Funnel, `rclone` to Backblaze B2 for ₹50/mo cold storage, and Grafana for the metrics that matter.
+Phase 10 (which I'll publish separately) is **observability + backup** — Caddy reverse proxy on Tailscale Funnel, `rclone` to Backblaze B2 for under $1/mo cold storage, and Grafana for the metrics that matter.
 
 ---
 
@@ -661,7 +661,7 @@ The questions I keep getting in DMs and replies. Bookmarked here for future-you.
 
 ### Can I deploy Hermes agents to a $5/month VPS?
 
-Technically yes, practically no. A 1GB RAM VPS will OOM the moment a vector store loads or fact extraction runs. **Minimum 4GB RAM** for a real agent system. For Indian builders, India-POP providers like DigitalOcean Bangalore, Linode Mumbai or AWS Mumbai Lightsail give you a 4GB VPS in the ₹400–700/mo range. Outside India, DigitalOcean's $24 droplet (4GB RAM) is the equivalent.
+Technically yes, practically no. A 1GB RAM VPS will OOM the moment a vector store loads or fact extraction runs. **Minimum 4GB RAM** for a real agent system. A 4GB VPS lands in the **$5–$9/month range** on most reputable providers — DigitalOcean's $24 droplet (4GB RAM) is the equivalent at the higher end, with cheaper options on Vultr, Contabo, OVH, Linode Mumbai, AWS Mumbai Lightsail, and similar.
 
 ### Why use Tailscale instead of just opening firewall ports?
 
@@ -677,10 +677,10 @@ For Indian builders, this is also a clean answer to the "where does our admin ac
 
 For a typical multi-agent setup on free-tier LLM credentials:
 
-- **Floor:** ~₹550/month (VPS + domain only)
-- **Ceiling:** ~₹4,500/month (with 2-3 paid credentials for higher throughput)
+- **Floor:** ~$7/month (VPS + domain only)
+- **Ceiling:** ~$55/month (with 2-3 paid credentials for higher throughput)
 
-Compare to one junior dev at ₹35,000/month doing the same content+research+QA workflow manually. The ROI math is the actual product here.
+Compare to one content/research/QA contractor at ~$3,000/month doing the same workflow manually. The ROI math is the actual product here.
 
 ### Does Hermes Agent need a GPU?
 
@@ -733,4 +733,4 @@ Bookmark this page. The next time someone tells you "AI agents on a VPS aren't p
 
 ---
 
-*If this playbook saved you a weekend, [follow me on X](https://x.com/growthperclick) for more candid implementer write-ups — the failures, the configs, and the ₹ math behind running agent systems out of India. Questions? Reply on the X thread for this article and I'll answer in detail. Building in public is more useful when the public actually gets the build.*
+*If this playbook saved you a weekend, [follow me on X](https://x.com/growthperclick) for more candid implementer write-ups — the failures, the configs, and the cost math behind running self-hosted agent systems. Questions? Reply on the X thread for this article and I'll answer in detail. Building in public is more useful when the public actually gets the build.*
