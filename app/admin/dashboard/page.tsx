@@ -167,7 +167,46 @@ export default function AdminDashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert(`Synced ${data.syncedCount} posts from Notion.`);
+        const lines: string[] = [
+          `Synced ${data.syncedCount ?? 0} posts from Notion.`,
+        ];
+        if (typeof data.totalFromNotion === "number") {
+          lines.push(
+            `Notion query returned ${data.totalFromNotion} page(s) with Status=published.`,
+          );
+        }
+        if (Array.isArray(data.skipped) && data.skipped.length > 0) {
+          lines.push("");
+          lines.push(`Skipped ${data.skipped.length} page(s):`);
+          for (const s of data.skipped.slice(0, 10)) {
+            const reason =
+              s.reason === "missing_title"
+                ? "missing Title"
+                : s.reason === "missing_slug"
+                  ? "missing Slug"
+                  : s.reason;
+            const label = s.hint ? ` ("${s.hint}")` : "";
+            lines.push(`  • ${s.pageId}${label}: ${reason}`);
+          }
+          if (data.skipped.length > 10) {
+            lines.push(`  …and ${data.skipped.length - 10} more`);
+          }
+        }
+        if (Array.isArray(data.errors) && data.errors.length > 0) {
+          lines.push("");
+          lines.push(`Errors (${data.errors.length}):`);
+          for (const e of data.errors.slice(0, 10)) lines.push(`  • ${e}`);
+        }
+        if (
+          (data.syncedCount ?? 0) === 0 &&
+          (data.totalFromNotion ?? 0) === 0
+        ) {
+          lines.push("");
+          lines.push(
+            "Hint: no Notion pages have Status=published. If you pushed via scripts/push-mdx-to-notion.mjs, the default is 'draft' — flip Status to 'published' in Notion, then sync again.",
+          );
+        }
+        alert(lines.join("\n"));
         setLoadingPosts(true);
         const params = new URLSearchParams({ page: String(page), limit: "10" });
         fetch(`/api/admin/posts?${params}`, {
@@ -182,10 +221,14 @@ export default function AdminDashboard() {
             setLoadingPosts(false);
           });
       } else {
-        alert(`Failed: ${data.error || "Unknown error"}`);
+        alert(
+          `Failed: ${data.error || "Unknown error"}${
+            data.details ? `\n\n${data.details}` : ""
+          }`,
+        );
       }
-    } catch {
-      alert("Error syncing with Notion.");
+    } catch (err: any) {
+      alert(`Error syncing with Notion.\n\n${err?.message ?? ""}`);
     } finally {
       setSyncingNotion(false);
     }
