@@ -8,10 +8,15 @@ import { getPublishedPosts } from "@/lib/blog";
 import { BlogList } from "@/components/blog/blog-list";
 import { WorkWithMe } from "@/components/work-with-me";
 import { VidoTask } from "@/components/vidotask";
+import { AiAgentsStartHere } from "@/components/ai-agents-start-here";
 
 export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
+  },
   description:
-    "Indie hacker building AI products in public — from LaunchSuite.tech to multi-agent systems, growth experiments, and fast MVP launches.",
+    "I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams using Hermes, OpenClaw, Claude, OpenAI, Supabase, and Next.js.",
   alternates: {
     canonical: "/",
   },
@@ -23,6 +28,8 @@ export default async function Home() {
   return (
     <Container>
       <Header />
+      <DottedSeparator className="my-10" />
+      <AiAgentsStartHere />
       <DottedSeparator className="my-10" />
       <Work />
       <DottedSeparator className="my-10" />
@@ -37,4 +44,3 @@ export default async function Home() {
     </Container>
   );
 }
-

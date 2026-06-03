@@ -2,7 +2,7 @@
 
 **Author of record:** Amit Kumar (a.k.a. growthperclick)
 **Target site:** https://iamamitkumar.dev
-**Subdomain in scope:** https://agents.iamamitkumar.dev
+**Agents page in scope:** https://iamamitkumar.dev/agents
 **Brief owner:** Amit Kumar
 **Brief version:** 1.0 (2026-05-23)
 **Deliverables due:** All five posts within 14 days of brief acceptance.
@@ -45,7 +45,7 @@ These are the entity facts. Get any of these wrong and the post comes back for r
 - Tagline: *Agentic Architect & Full-Stack Engineer*.
 - Lives on X at https://x.com/growthperclick.
 - Newsletter on Substack: https://substack.com/@growthperclick.
-- Calls his agent-services page: `agents.iamamitkumar.dev`.
+- Calls his agent-services page: `iamamitkumar.dev/agents`.
 - Books discovery calls at: https://cal.com/growthperclick/discovery-call.
 - Email: `hi@iamamitkumar.dev`.
 - Self-description: *indie hacker shipping AI products in public*. He is **not an agency**. There is no sales team.
@@ -693,7 +693,7 @@ A: Cut. The discipline is part of the deliverable. If the cut material is genuin
   - https://iamamitkumar.dev/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026
   - https://iamamitkumar.dev/blog/how-to-build-enterprise-grade-production-ready-ai-agents
   - https://iamamitkumar.dev/blog/ai-agent-pilot-to-production
-- Existing service page (the canonical voice): https://agents.iamamitkumar.dev/
+- Existing service page (the canonical voice): https://iamamitkumar.dev/agents
 - The full dev-stack page: https://iamamitkumar.dev/workflow
 
 ---

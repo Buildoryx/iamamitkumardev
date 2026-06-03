@@ -1,6 +1,6 @@
 -- Agent Leads
 -- Captures inbound prospects for production-grade AI agent builds
--- (https://agents.iamamitkumar.dev). One row per submission.
+-- (https://iamamitkumar.dev/agents). One row per submission.
 
 create table if not exists agent_leads (
   id uuid primary key default gen_random_uuid(),
@@ -15,7 +15,7 @@ create table if not exists agent_leads (
   stage text not null check (stage in ('idea', 'prototyping', 'in_production')),
   timeline text not null check (timeline in ('this_month', 'one_to_two_months', 'exploring')),
   referral text,
-  source text not null default 'agents.iamamitkumar.dev',
+  source text not null default 'iamamitkumar.dev/agents',
   utm_source text,
   utm_medium text,
   utm_campaign text,
@@ -56,4 +56,4 @@ create policy "Service role full access agent_leads"
   using (true) with check (true);
 
 comment on table agent_leads is
-  'Inbound leads from agents.iamamitkumar.dev landing page form.';
+  'Inbound leads from iamamitkumar.dev/agents landing page form.';

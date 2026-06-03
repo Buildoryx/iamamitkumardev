@@ -42,11 +42,12 @@ function isConfiguredAnalyticsScriptUrl(
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
+    default:
+      "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
     template: "%s | Amit Kumar",
   },
   description:
-    "Production AI agents on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, and tuned to your business. Engineering agentic architectures, multi-agent orchestration, and enterprise SaaS.",
+    "I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams using Hermes, OpenClaw, Claude, OpenAI, Supabase, and Next.js.",
   keywords: [
     "Amit Kumar",
     "iamamitkumar",
@@ -84,9 +85,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Amit Kumar", url: SITE_URL }],
   creator: "Amit Kumar",
   openGraph: {
-    title: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
+    title: "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
     description:
-      "Production AI agents on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, and tuned to your business.",
+      "Production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams.",
     url: SITE_URL,
     siteName: "Amit Kumar",
     locale: "en_US",
@@ -102,9 +103,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
+    title: "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
     description:
-      "Production AI agents on Hermes & OpenClaw — self-hosted, model-agnostic, tuned to your business.",
+      "Production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams.",
     creator: "@growthperclick",
     images: ["/images/og-image.png"],
   },
@@ -157,10 +158,10 @@ export default function RootLayout({ children }) {
     alternateName: ["growthperclick", "iamamitkumar"],
     url: SITE_URL,
     description:
-      "Developer, writer, and content creator building production-grade agentic architectures, multi-agent orchestration, and enterprise SaaS.",
+      "Amit Kumar (@growthperclick) builds production AI agents, MCP tools, self-hosted automations, multi-agent orchestration systems, and enterprise SaaS.",
     image: `${SITE_URL}/images/og-image.png`,
     email: "hi@iamamitkumar.dev",
-    jobTitle: "Developer, Writer, Content Creator",
+    jobTitle: "Production AI Agent Builder and Full-Stack Engineer",
     sameAs: [
       X_URL,
       "https://github.com/ravenrepo",

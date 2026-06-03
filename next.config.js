@@ -113,6 +113,8 @@ module.exports = {
             value: [
               '</sitemap.xml>; rel="sitemap"',
               '</robots.txt>; rel="robots"',
+              '</agents>; rel="service-doc"',
+              '</tools>; rel="service-doc"',
               '</blog>; rel="service-doc"',
               '</api>; rel="service-desc"',
               '</.well-known/api-catalog>; rel="api-catalog"',
@@ -129,6 +131,12 @@ module.exports = {
   },
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "agents.iamamitkumar.dev" }],
+        destination: "https://iamamitkumar.dev/agents",
+        permanent: true,
+      },
       { source: "/boxshadows", destination: "/", permanent: true },
       { source: "/test", destination: "/", permanent: true },
       { source: "/playground", destination: "/", permanent: true },

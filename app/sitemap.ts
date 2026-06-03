@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blog";
-import { AGENTS_URL, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let blogPosts = await getPublishedPosts();
@@ -13,17 +13,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
-    // /agents is the agents-services page, also reachable at the canonical
-    // subdomain. We list both URLs so both surfaces are crawlable; the
-    // canonical link in the page resolves duplicate-content correctly.
     {
       url: `${SITE_URL}/agents`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.9,
+      priority: 0.95,
     },
     {
-      url: `${AGENTS_URL}/`,
+      url: `${SITE_URL}/tools`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,

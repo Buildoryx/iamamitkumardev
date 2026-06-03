@@ -16,6 +16,7 @@ function isActivePath(pathname: string, href: string) {
 const links = [
   { title: "Home", href: "/" },
   { title: "Agents", href: "/agents" },
+  { title: "Tools", href: "/tools" },
   { title: "Tweets", href: "/tweets" },
   { title: "Inspiration", href: "/inspiration" },
   { title: "Workflow", href: "/workflow" },
@@ -72,9 +73,7 @@ export const Navbar = () => {
               <DottedUnderline
                 className={cn(
                   "mask-x-from-90% transition-opacity duration-300",
-                  active
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100",
+                  active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
                 )}
               />
             </Link>

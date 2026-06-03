@@ -2,10 +2,6 @@
 export const SITE_HOST = "iamamitkumar.dev" as const;
 export const SITE_URL = `https://${SITE_HOST}` as const;
 
-/** Agents-landing subdomain. */
-export const AGENTS_HOST = `agents.${SITE_HOST}` as const;
-export const AGENTS_URL = `https://${AGENTS_HOST}` as const;
-
 /** Where prospects can book a 20-minute discovery call. */
 export const AGENTS_DISCOVERY_CALL_URL =
   "https://cal.com/growthperclick/discovery-call" as const;

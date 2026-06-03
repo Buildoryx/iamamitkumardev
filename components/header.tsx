@@ -6,29 +6,27 @@ export const Header = () => {
   return (
     <div>
       <h1 className="sr-only">
-        Amit Kumar — Agentic Architect, Full-Stack Engineer & Indie Hacker
+        Amit Kumar — Production AI Agents, MCP Tools, and Automation Systems
       </h1>
       <div className="text-foreground pt-4 text-base">
-        I'm an indie hacker shipping AI products in public. I go from idea to
-        MVP fast, test demand, and iterate weekly. I share the full journey on{" "}
+        I build production AI agents, MCP tools, self-hosted automations, and
+        multi-agent workflows for founders and teams. My work focuses on agents
+        that live inside real tools — Telegram, Slack, Discord, Postgres,
+        Notion, CRMs, dashboards, and internal ops systems.
+      </div>
+      <div className="text-foreground pt-4 text-base">
+        The stack I write and build with includes Hermes by Nous Research,
+        OpenClaw, Claude Code, OpenAI, Anthropic, OpenRouter, Supabase, Next.js,
+        Docker, Tailscale, and VPS deployments on Hetzner or DigitalOcean.
+      </div>
+      <div className="text-foreground pt-4 text-base">
+        I still build in public on{" "}
         <LinkPreview url="https://x.com/growthperclick">
           X / Twitter
         </LinkPreview>{" "}
-        — wins, mistakes, and what actually worked.
-      </div>
-      <div className="text-foreground pt-4 text-base">
-        I launched{" "}
-        <LinkPreview url="https://launchsuite.tech">
-          LaunchSuite.tech
-        </LinkPreview>{" "}
-        as a production SaaS boilerplate and pushed it to Product Hunt. I also
-        build high-leverage products in AI automation, trading intelligence, and
-        growth systems.
-      </div>
-      <div className="text-foreground pt-4 text-base">
-        I publish founder notes, build logs, and playbooks on{" "}
-        <LinkPreview url={SUBSTACK_URL}>Substack</LinkPreview> for builders who
-        want speed plus real execution.
+        and publish practical AI-agent build logs and playbooks on{" "}
+        <LinkPreview url={SUBSTACK_URL}>Substack</LinkPreview> — what worked,
+        what broke, and how I fixed it.
       </div>
     </div>
   );

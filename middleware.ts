@@ -125,7 +125,7 @@ For the canonical HTML article, visit [${pathname}](${pathname}). Agents can als
   if (pathname === "/agents") {
     return {
       title:
-        "Hermes & OpenClaw AI Agents — Production Builds | Amit Kumar",
+        "Production AI Agent Development Services — Hermes & OpenClaw | Amit Kumar",
       description:
         "Production AI agents built on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, tuned to your business. Personal AI for founders, business intelligence agents for teams, ops agents in Telegram, Slack, Discord.",
       body: `I build production-grade AI agents on **Hermes** (by [Nous Research](https://nousresearch.com/)) and **OpenClaw**. Self-hosted. Model-agnostic. Tuned to how your business actually runs.
@@ -203,7 +203,7 @@ I help you pick on the discovery call.
 
 ## Canonical URL
 
-[https://agents.iamamitkumar.dev/](https://agents.iamamitkumar.dev/)
+[https://iamamitkumar.dev/agents](https://iamamitkumar.dev/agents)
 `,
     };
   }
@@ -245,39 +245,6 @@ ${page.body.trim()}
 
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url);
-  const hostname = (request.headers.get("host") || "").split(":")[0];
-
-  // ---------------------------------------------------------------------------
-  // Subdomain routing: agents.iamamitkumar.dev/* → /agents/*
-  // Preserves /api, /_next, and well-known top-level files so that
-  // robots.txt/sitemap.xml/feed.xml/manifest still resolve on the subdomain.
-  // ---------------------------------------------------------------------------
-  if (hostname.startsWith("agents.")) {
-    const passthroughPaths = new Set([
-      "/robots.txt",
-      "/sitemap.xml",
-      "/feed.xml",
-      "/manifest.webmanifest",
-      "/favicon.ico",
-      "/favicon.png",
-      "/favicon.svg",
-      "/apple-touch-icon.png",
-    ]);
-
-    const isInternal =
-      url.pathname.startsWith("/_next/") ||
-      url.pathname.startsWith("/api/") ||
-      url.pathname.startsWith("/.well-known/") ||
-      passthroughPaths.has(url.pathname);
-
-    if (!isInternal && !url.pathname.startsWith("/agents")) {
-      const rewritten = new URL(url.toString());
-      rewritten.pathname =
-        url.pathname === "/" ? "/agents" : `/agents${url.pathname}`;
-      return NextResponse.rewrite(rewritten);
-    }
-  }
-
   if (request.method !== "GET") {
     return NextResponse.next();
   }

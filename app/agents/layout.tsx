@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { faqStructuredData } from "@/components/agents/landing/faq";
-import { AGENTS_URL, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
+
+const AGENTS_PAGE_URL = `${SITE_URL}/agents`;
 
 const TITLE =
-  "Hermes & OpenClaw AI Agents — Production Builds | Amit Kumar";
+  "Production AI Agent Development Services — Hermes & OpenClaw | Amit Kumar";
 const DESCRIPTION =
   "Production AI agents built on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, tuned to your business. Personal AI for founders, business intelligence agents for teams, ops agents in Telegram, Slack, Discord.";
 
@@ -53,12 +55,12 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   keywords: KEYWORDS,
   alternates: {
-    canonical: AGENTS_URL,
+    canonical: AGENTS_PAGE_URL,
   },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: AGENTS_URL,
+    url: AGENTS_PAGE_URL,
     siteName: "Amit Kumar — Agents",
     locale: "en_US",
     type: "website",
@@ -93,9 +95,9 @@ export default function AgentsLayout({
   const serviceJsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    "@id": `${AGENTS_URL}/#service`,
-    name: "Amit Kumar — Production AI Agent Builds on Hermes & OpenClaw",
-    url: AGENTS_URL,
+    "@id": `${AGENTS_PAGE_URL}/#service`,
+    name: "Amit Kumar — Production AI Agent Development Services on Hermes & OpenClaw",
+    url: AGENTS_PAGE_URL,
     description: DESCRIPTION,
     provider: { "@id": `${SITE_URL}/#person` },
     serviceType: [
@@ -147,7 +149,7 @@ export default function AgentsLayout({
   const hermesJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "@id": `${AGENTS_URL}/#hermes-agent`,
+    "@id": `${AGENTS_PAGE_URL}/#hermes-agent`,
     name: "Hermes Agent",
     alternateName: ["Hermes", "Hermes Agent (Nous Research)"],
     applicationCategory: "DeveloperApplication",
@@ -171,7 +173,7 @@ export default function AgentsLayout({
   const openClawJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "@id": `${AGENTS_URL}/#openclaw`,
+    "@id": `${AGENTS_PAGE_URL}/#openclaw`,
     name: "OpenClaw",
     alternateName: ["OpenClaw agent framework"],
     applicationCategory: "DeveloperApplication",
@@ -204,7 +206,7 @@ export default function AgentsLayout({
         "@type": "ListItem",
         position: 2,
         name: "Agents",
-        item: AGENTS_URL,
+        item: AGENTS_PAGE_URL,
       },
     ],
   };

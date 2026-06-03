@@ -8,9 +8,9 @@ import { getPublishedPosts, SITE_URL } from "@/lib/blog";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Blog — Founder Notes & Build Logs",
+  title: "Blog — AI Agents, MCP Tools & Build Logs",
   description:
-    "Founder notes, build logs, and technical writing on shipping products, AI systems, and growth experiments.",
+    "Technical writing on production AI agents, MCP tools, self-hosted automations, multi-agent workflows, product shipping, and growth experiments.",
   alternates: {
     canonical: `${SITE_URL}/blog`,
     types: {
@@ -36,7 +36,7 @@ export default async function BlogPage() {
     "@id": `${SITE_URL}/blog/#blog`,
     name: "Amit Kumar Blog",
     description:
-      "Founder notes, build logs, and technical writing on shipping products, AI systems, and growth experiments.",
+      "Technical writing on production AI agents, MCP tools, self-hosted automations, multi-agent workflows, product shipping, and growth experiments.",
     url: `${SITE_URL}/blog`,
     author: { "@id": `${SITE_URL}/#person` },
     publisher: { "@id": `${SITE_URL}/#person` },
@@ -57,8 +57,8 @@ export default async function BlogPage() {
       />
       <Container className="flex-1">
         <p className="text-muted-foreground pt-4 font-mono text-xs tracking-widest uppercase">
-          FOUNDER NOTES, BUILD LOGS, AND TECHNICAL WRITING ON SHIPPING PRODUCTS,
-          AI SYSTEMS, AND GROWTH EXPERIMENTS.
+          TECHNICAL WRITING ON PRODUCTION AI AGENTS, MCP TOOLS, SELF-HOSTED
+          AUTOMATIONS, MULTI-AGENT WORKFLOWS, AND PRODUCT SHIPPING.
         </p>
 
         <BlogIndex posts={indexPosts} />

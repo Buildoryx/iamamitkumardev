@@ -24,9 +24,7 @@ export const AgentLeadInputSchema = z.object({
     .optional()
     .transform((v) => (v ? v.trim() : undefined)),
 
-  role: z
-    .enum(["founder", "operator", "engineer", "other"])
-    .optional(),
+  role: z.enum(["founder", "operator", "engineer", "other"]).optional(),
 
   agent_type: z.enum([
     "personal",
@@ -58,11 +56,7 @@ export const AgentLeadInputSchema = z.object({
     }),
 
   /** Hidden honeypot — must be empty. Bots fill it in, humans don't. */
-  website: z
-    .string()
-    .max(0, "Bot detected")
-    .optional()
-    .or(z.literal("")),
+  website: z.string().max(0, "Bot detected").optional().or(z.literal("")),
 
   utm_source: z.string().max(120).optional(),
   utm_medium: z.string().max(120).optional(),
@@ -103,7 +97,7 @@ export async function insertAgentLead({
   input,
   ip,
   userAgent,
-  source = "agents.iamamitkumar.dev",
+  source = "iamamitkumar.dev/agents",
 }: InsertAgentLeadParams): Promise<{ id: string } | { error: string }> {
   const supabaseAdmin = getSupabaseAdmin();
 

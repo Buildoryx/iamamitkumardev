@@ -46,13 +46,7 @@ type AgentType =
   | "not_sure";
 type AgentStage = "idea" | "prototyping" | "in_production";
 type AgentTimeline = "this_month" | "one_to_two_months" | "exploring";
-type AgentStatus =
-  | "new"
-  | "contacted"
-  | "qualified"
-  | "won"
-  | "lost"
-  | "spam";
+type AgentStatus = "new" | "contacted" | "qualified" | "won" | "lost" | "spam";
 
 interface AgentLeadRecord {
   id: string;
@@ -192,9 +186,7 @@ export default function AdminLeadsPage() {
   if (!session) return null;
 
   const totalLeads =
-    contactInquiries.length +
-    newsletterSubscribers.length +
-    agentLeads.length;
+    contactInquiries.length + newsletterSubscribers.length + agentLeads.length;
 
   function toggleExpanded(id: string) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -279,7 +271,7 @@ export default function AdminLeadsPage() {
       <section>
         <p className="text-foreground font-medium">Agent project requests</p>
         <p className="text-foreground/50 mt-1 font-mono text-[10px] tracking-widest uppercase">
-          From agents.iamamitkumar.dev
+          From iamamitkumar.dev/agents
         </p>
 
         {loading ? (

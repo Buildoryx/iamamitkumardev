@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AGENTS_URL, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 
 export async function GET() {
   // Modern AI crawler allowlist. These are the bots that actually drive
@@ -41,6 +41,7 @@ Allow: /
 Allow: /agents
 Allow: /blog
 Allow: /workflow
+Allow: /tools
 Disallow: /admin
 Disallow: /api/admin
 Disallow: /api/auth
@@ -53,7 +54,6 @@ Allow: /
 
 ${aiCrawlerBlocks}
 Sitemap: ${SITE_URL}/sitemap.xml
-Sitemap: ${AGENTS_URL}/sitemap.xml
 Host: ${SITE_URL}
 
 Content-Signal: ai-train=no, search=yes, ai-input=yes
