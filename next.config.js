@@ -115,6 +115,7 @@ module.exports = {
               '</robots.txt>; rel="robots"',
               '</agents>; rel="service-doc"',
               '</tools>; rel="service-doc"',
+              '</projects/invobill>; rel="service-doc"',
               '</blog>; rel="service-doc"',
               '</api>; rel="service-desc"',
               '</.well-known/api-catalog>; rel="api-catalog"',

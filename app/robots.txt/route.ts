@@ -42,6 +42,7 @@ Allow: /agents
 Allow: /blog
 Allow: /workflow
 Allow: /tools
+Allow: /projects/invobill
 Disallow: /admin
 Disallow: /api/admin
 Disallow: /api/auth

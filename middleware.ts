@@ -55,6 +55,7 @@ I publish founder notes, build logs, and playbooks on [Substack](https://substac
 
 ## Building now
 
+- [InvoBill](/projects/invobill) — live inventory, GST billing, accounting, attendance, CRM, lead management, and financial reporting platform for Indian SMBs. Visit [invobill.xyz](https://invobill.xyz).
 - VidoTask — turns saved social content into actionable plans. Try [vidotask.com](https://vidotask.com) (in active development).
 - ComplianceHQ — AI-powered compliance automation for startup security readiness.
 - SharkOS — LinkedIn operating system replacing multiple GTM SaaS tools.
@@ -75,6 +76,35 @@ I publish founder notes, build logs, and playbooks on [Substack](https://substac
 - [Workflow](/workflow)
 - [Tweets](/tweets)
 - [Sponsor](/sponsor)
+`,
+    };
+  }
+
+  if (pathname === "/projects/invobill") {
+    return {
+      title:
+        "InvoBill — Inventory, GST Billing & Accounting Platform for Indian SMBs | Amit Kumar",
+      description:
+        "InvoBill is a live business management platform for Indian SMBs with inventory, GST billing, accounting, attendance, CRM, lead management, and financial reporting in one system.",
+      body: `# InvoBill
+
+InvoBill is a live business management platform for Indian SMBs. It combines inventory management, GST billing, accounting, team attendance, CRM, lead management, expenses, and financial reporting in one system.
+
+## Live site
+
+- [invobill.xyz](https://invobill.xyz)
+
+## Core modules
+
+- Inventory management — multi-warehouse stock tracking, low-stock alerts, SKUs, barcode workflows, and inventory valuation.
+- GST billing and invoicing — GST-compliant invoices with CGST, SGST, IGST calculations, payment tracking, and reminders.
+- Accounting and finance — double-entry bookkeeping, chart of accounts, trial balance, balance sheet, P&L, cash flow, GST, and TDS visibility.
+- Team and attendance — employee attendance, shifts, leave, location-aware tracking, and team operations.
+- CRM and leads — lead tracking, activity logs, sales pipeline visibility, conversion analytics, and follow-up management.
+
+## Built for
+
+Indian businesses that want operational visibility across stock, invoices, expenses, leads, teams, and financial reports without stitching together multiple tools.
 `,
     };
   }

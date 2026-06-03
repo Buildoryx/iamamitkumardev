@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Subheading } from "./subheading";
 import {
   CursorIcon,
@@ -13,8 +14,23 @@ import { Box } from "./box";
 export const Companies = () => {
   const companies = [
     {
+      title: "InvoBill",
+      href: "/projects/invobill",
+      description:
+        "Live inventory, GST billing, accounting, attendance, and CRM platform for Indian SMBs.",
+      skeleton: (
+        <span className="text-sm font-bold text-white drop-shadow-xl drop-shadow-black/40">
+          ₹
+        </span>
+      ),
+      boxClassName:
+        "bg-linear-to-b from-blue-400 to-blue-600 ring-offset-blue-500",
+    },
+    {
       title: "LaunchSuite.tech",
-      description: "SaaS boilerplate MVP for founders, launched for speed-to-revenue.",
+      href: "https://launchsuite.tech",
+      description:
+        "SaaS boilerplate MVP for founders, launched for speed-to-revenue.",
       skeleton: (
         <CursorIcon className="size-4 text-white drop-shadow-xl drop-shadow-black/40" />
       ),
@@ -23,7 +39,8 @@ export const Companies = () => {
     },
     {
       title: "Index Mavens",
-      description: "8-agent trading intelligence system for Indian market workflows.",
+      description:
+        "8-agent trading intelligence system for Indian market workflows.",
       skeleton: (
         <NeonIcon className="size-4 text-white drop-shadow-xl drop-shadow-black/40" />
       ),
@@ -32,7 +49,8 @@ export const Companies = () => {
     },
     {
       title: "ComplianceHQ",
-      description: "AI-powered compliance automation for startup security readiness.",
+      description:
+        "AI-powered compliance automation for startup security readiness.",
       skeleton: (
         <StrapiIcon className="size-4 text-white drop-shadow-xl drop-shadow-black/40" />
       ),
@@ -41,7 +59,8 @@ export const Companies = () => {
     },
     {
       title: "SharkOS",
-      description: "LinkedIn operating system replacing multiple GTM SaaS tools.",
+      description:
+        "LinkedIn operating system replacing multiple GTM SaaS tools.",
       skeleton: (
         <HostingerIcon className="size-4 text-white drop-shadow-xl drop-shadow-black/40" />
       ),
@@ -59,7 +78,8 @@ export const Companies = () => {
     },
     {
       title: "JARVIS OS",
-      description: "Local-first AI morning briefing assistant for focused execution.",
+      description:
+        "Local-first AI morning briefing assistant for focused execution.",
       skeleton: (
         <FireworksIcon className="size-4 text-white drop-shadow-xl drop-shadow-black/40" />
       ),
@@ -71,19 +91,45 @@ export const Companies = () => {
     <section>
       <Subheading>Products I've built</Subheading>
       <div className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3">
-        {companies.map((company) => (
-          <div key={company.title} className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Box className={company.boxClassName}>{company.skeleton}</Box>
-              <p className="text-foreground text-sm font-medium">
-                {company.title}
+        {companies.map((company) => {
+          const content = (
+            <>
+              <div className="flex items-center gap-2">
+                <Box className={company.boxClassName}>{company.skeleton}</Box>
+                <p className="text-foreground text-sm font-medium">
+                  {company.title}
+                </p>
+              </div>
+              <p className="text-foreground/70 text-sm text-pretty">
+                {company.description}
               </p>
+            </>
+          );
+
+          if ("href" in company && company.href) {
+            return (
+              <Link
+                key={company.title}
+                href={company.href}
+                target={company.href.startsWith("http") ? "_blank" : undefined}
+                rel={
+                  company.href.startsWith("http")
+                    ? "noopener noreferrer"
+                    : undefined
+                }
+                className="group flex flex-col gap-3 rounded-lg transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/40"
+              >
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <div key={company.title} className="flex flex-col gap-3">
+              {content}
             </div>
-            <p className="text-foreground/70 text-sm text-pretty">
-              {company.description}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
