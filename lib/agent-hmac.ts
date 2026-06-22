@@ -1,7 +1,26 @@
 import "server-only";
 import crypto from "crypto";
-import { getEnv } from "./env";
 import { getSupabaseAdmin } from "./supabase";
+
+/**
+ * Read the Hermes agent env directly from process.env.
+ *
+ * IMPORTANT: we deliberately do NOT use the strict getEnv() here. getEnv()
+ * parses the ENTIRE environment with zod and throws if any unrelated variable
+ * is malformed — which would turn the agent API into an opaque 500 instead of
+ * a clean fail-closed config response. Reading only what we need keeps this
+ * route robust and self-contained.
+ */
+function agentEnv() {
+  const skewRaw = process.env.HERMES_MAX_CLOCK_SKEW_SECONDS;
+  const skew = skewRaw && Number.isFinite(Number(skewRaw)) ? Number(skewRaw) : 300;
+  return {
+    keyId: (process.env.HERMES_AGENT_KEY_ID || "").trim(),
+    secret: (process.env.HERMES_AGENT_HMAC_SECRET || "").trim(),
+    skew,
+    redisUrl: (process.env.REDIS_URL || "").trim(),
+  };
+}
 
 /**
  * HMAC request authentication for the Hermes agent blog API.
@@ -78,7 +97,7 @@ let redisClient: import("ioredis").Redis | null | undefined;
 
 async function getRedis(): Promise<import("ioredis").Redis | null> {
   if (redisClient !== undefined) return redisClient;
-  const url = getEnv().REDIS_URL;
+  const url = agentEnv().redisUrl;
   if (!url) {
     redisClient = null;
     return null;
@@ -149,9 +168,9 @@ export async function verifyAgentRequest(
   headers: Headers,
   rawBody: string | Buffer,
 ): Promise<VerifyResult> {
-  const env = getEnv();
-  const keyIdExpected = env.HERMES_AGENT_KEY_ID;
-  const secret = env.HERMES_AGENT_HMAC_SECRET;
+  const env = agentEnv();
+  const keyIdExpected = env.keyId;
+  const secret = env.secret;
 
   // Fail closed: missing config is a server error, never public access.
   if (!keyIdExpected || !secret) {
@@ -186,7 +205,7 @@ export async function verifyAgentRequest(
     return { ok: false, reason: "stale", message: "Invalid timestamp." };
   }
   const nowSec = Math.floor(Date.now() / 1000);
-  const skew = env.HERMES_MAX_CLOCK_SKEW_SECONDS ?? 300;
+  const skew = env.skew;
   if (Math.abs(nowSec - ts) > skew) {
     return {
       ok: false,

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { fileTypeFromBuffer } from "file-type";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { getEnv } from "@/lib/env";
 import { verifyAgentRequest, statusForReason } from "@/lib/agent-hmac";
 import { logAgentBlogEvent } from "@/lib/agent-audit";
 
@@ -127,7 +126,7 @@ export async function POST(req: NextRequest) {
   const yyyy = now.getUTCFullYear();
   const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
   const objectPath = `hermes/${yyyy}/${mm}/${crypto.randomUUID()}.${ext}`;
-  const bucket = getEnv().SUPABASE_BLOG_MEDIA_BUCKET ?? "blog-media";
+  const bucket = (process.env.SUPABASE_BLOG_MEDIA_BUCKET || "blog-media").trim();
 
   try {
     const supabase = getSupabaseAdmin();
