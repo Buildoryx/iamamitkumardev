@@ -58,3 +58,9 @@ create policy "blog-media public read"
 -- NOTE: No INSERT/UPDATE/DELETE policies are created for anon/auth roles.
 -- Only the backend service-role key (which bypasses RLS) can write media.
 -- There is intentionally NO delete capability exposed to the agent.
+
+-- 4. Seed the agent author. post.authorId has a FK to "user"(id); the agent
+--    publishes as "hermes-agent", so that user row must exist.
+insert into public."user" (id, name, email, "emailVerified", role, "createdAt", "updatedAt", banned)
+values ('hermes-agent', 'Hermes Agent', 'hermes-agent@iamamitkumar.dev', true, 'agent', now(), now(), false)
+on conflict (id) do nothing;
