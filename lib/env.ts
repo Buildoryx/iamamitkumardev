@@ -41,6 +41,21 @@ const envSchema = z.object({
 
   REDIS_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   ADMIN_USER_IDS: z.string().optional(),
+
+  // Hermes agent blog publishing (HMAC-signed agent API)
+  HERMES_AGENT_KEY_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+  HERMES_AGENT_HMAC_SECRET: z.preprocess(
+    emptyToUndefined,
+    z.string().optional(),
+  ),
+  HERMES_MAX_CLOCK_SKEW_SECONDS: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().positive().max(3600).optional().default(300),
+  ),
+  SUPABASE_BLOG_MEDIA_BUCKET: z.preprocess(
+    emptyToUndefined,
+    z.string().optional().default("blog-media"),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;
