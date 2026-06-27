@@ -4,8 +4,8 @@ import { SITE_URL } from "@/lib/site";
 export async function GET() {
   // Modern AI crawler allowlist. These are the bots that actually drive
   // AI-search traffic (ChatGPT search, Perplexity, Claude, Google AI,
-  // Anthropic web tooling, You.com, Brave, etc.). Block list intentionally
-  // empty — we want maximum surface in AI search results.
+  // Anthropic web tooling, You.com, Brave, etc.). We want maximum surface
+  // in AI search results for these.
   const aiCrawlers = [
     "GPTBot",
     "ChatGPT-User",
@@ -18,17 +18,37 @@ export async function GET() {
     "Google-Extended",
     "GoogleOther",
     "Applebot-Extended",
+    "DuckAssistBot",
+    "YouBot",
+  ];
+
+  // Aggressive scraper-farm / SEO-audit bots that crawl thousands of URLs in
+  // bursts and drive metered hosting cost with little to no SEO upside.
+  // These are blocked outright; well-behaved ones honor Disallow.
+  const throttledCrawlers = [
     "Bytespider",
     "CCBot",
-    "DuckAssistBot",
     "Amazonbot",
-    "YouBot",
+    "DataForSeoBot",
+    "SemrushBot",
+    "AhrefsBot",
+    "MJ12bot",
+    "DotBot",
+    "PetalBot",
   ];
 
   const aiCrawlerBlocks = aiCrawlers
     .map(
       (bot) => `User-Agent: ${bot}
 Allow: /
+`,
+    )
+    .join("\n");
+
+  const throttledCrawlerBlocks = throttledCrawlers
+    .map(
+      (bot) => `User-Agent: ${bot}
+Disallow: /
 `,
     )
     .join("\n");
@@ -46,6 +66,7 @@ Allow: /projects/invobill
 Disallow: /admin
 Disallow: /api/admin
 Disallow: /api/auth
+Crawl-delay: 10
 
 User-Agent: Googlebot
 Allow: /
@@ -54,6 +75,7 @@ User-Agent: Bingbot
 Allow: /
 
 ${aiCrawlerBlocks}
+${throttledCrawlerBlocks}
 Sitemap: ${SITE_URL}/sitemap.xml
 Host: ${SITE_URL}
 

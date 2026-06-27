@@ -273,10 +273,31 @@ ${page.body.trim()}
 `;
 }
 
+// Aggressive scraper-farm bots that crawl thousands of URLs in bursts and
+// drive metered Edge/function cost with little SEO upside. We keep the
+// AI-search bots that actually send traffic (GPTBot, ClaudeBot, PerplexityBot,
+// Googlebot, etc.) fully allowed — these are throttled instead.
+const THROTTLED_BOT_PATTERN =
+  /(bytespider|ccbot|amazonbot|dataforseo|semrushbot|ahrefsbot|mj12bot|dotbot|petalbot|seekport|megaindex)/i;
+
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url);
   if (request.method !== "GET") {
     return NextResponse.next();
+  }
+
+  const userAgent = request.headers.get("user-agent") || "";
+
+  // Short-circuit aggressive crawlers before any rendering work happens.
+  // Returning 429 here also avoids the downstream page/ISR function cost.
+  if (THROTTLED_BOT_PATTERN.test(userAgent)) {
+    return new NextResponse("Too Many Requests", {
+      status: 429,
+      headers: {
+        "Retry-After": "86400",
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
   }
 
   const acceptHeader = request.headers.get("accept") || "";
@@ -304,6 +325,7 @@ export async function middleware(request: NextRequest) {
     ".xml",
     ".json",
     ".webmanifest",
+    ".txt",
   ];
 
   if (
@@ -334,7 +356,10 @@ export async function middleware(request: NextRequest) {
   return new NextResponse(markdown, {
     status: 200,
     headers: {
-      "Cache-Control": "public, max-age=3600",
+      // Cache hard at the edge so repeat crawler hits are served from cache
+      // and don't re-run the middleware logic / count as origin work.
+      "Cache-Control":
+        "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
       "Content-Signal": "ai-train=no, search=yes, ai-input=yes",
       "Content-Type": "text/markdown; charset=utf-8",
       Vary: "Accept",
@@ -343,6 +368,21 @@ export async function middleware(request: NextRequest) {
   });
 }
 
+// Only run middleware on the content paths that actually serve the
+// AI-markdown variant. This drastically shrinks billed Edge Middleware
+// invocations: random/404 URLs and asset-ish paths no longer invoke it.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    "/",
+    "/agents",
+    "/tools",
+    "/workflow",
+    "/newsletter",
+    "/tweets",
+    "/sponsor",
+    "/inspiration",
+    "/projects/:path*",
+    "/blog/:path*",
+    "/blog",
+  ],
 };
