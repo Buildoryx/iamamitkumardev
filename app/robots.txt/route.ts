@@ -66,7 +66,6 @@ Allow: /projects/invobill
 Disallow: /admin
 Disallow: /api/admin
 Disallow: /api/auth
-Crawl-delay: 10
 
 User-Agent: Googlebot
 Allow: /
