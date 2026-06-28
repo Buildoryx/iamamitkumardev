@@ -28,9 +28,9 @@ export function BlogArticleShell({
   return (
     <Container>
       <article className="pt-4">
-        <h2 className="text-primary pt-3 font-mono text-2xl font-bold tracking-widest uppercase">
+        <h1 className="text-primary pt-3 font-mono text-2xl font-bold tracking-widest uppercase">
           {frontMatter.title}
-        </h2>
+        </h1>
         {frontMatter.summary ? (
           <p className="text-muted-foreground pt-3 font-mono text-xs leading-relaxed tracking-widest uppercase">
             {frontMatter.summary}

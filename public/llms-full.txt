@@ -1,0 +1,57 @@
+# Amit Kumar — Full Site Content for AI Assistants
+
+> This file contains comprehensive information about Amit Kumar (aka growthperclick) — a production AI agent builder and full-stack engineer.
+
+## About
+
+Amit Kumar builds production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams. He builds in public on X/Twitter and publishes practical AI-agent build logs and playbooks.
+
+## Site structure
+
+| Path | Description |
+|------|-------------|
+| `/` | Home page — portfolio, products, blog list |
+| `/agents` | Production AI agent development services |
+| `/blog` | Blog index — technical writing |
+| `/blog/[slug]` | Individual blog posts |
+| `/tools` | Recommended AI agent tools |
+| `/workflow` | Development stack and workflow |
+| `/projects/invobill` | InvoBill product page |
+| `/newsletter` | Newsletter signup |
+| `/tweets` | Embedded tweets |
+| `/inspiration` | Inspiration and links |
+| `/sponsor` | Sponsorship information |
+
+## Key technologies
+
+- **Hermes Agent** by Nous Research — open-source self-improving AI agent with persistent memory, scheduled crons, subagent spawning, multi-channel gateway (Telegram, Slack, Discord, WhatsApp, Signal, CLI)
+- **OpenClaw** — self-hosted messaging-first AI agent framework with markdown-based memory (SOUL.md), plugin pipeline
+- **Claude Code** — AI coding assistant
+- **OpenAI / Anthropic / OpenRouter** — model providers
+- **Supabase** — database and auth
+- **Next.js** — web framework
+- **Tailwind CSS** — styling
+- **Vercel** — deployment
+- **Docker / Hetzner / DigitalOcean / Hostinger** — infrastructure
+- **Tailscale** — mesh networking
+
+## Agent skills and specializations
+
+- Production AI agent development and deployment
+- Hermes Agent setup, customization, and production hardening
+- OpenClaw agent framework implementation
+- Multi-agent orchestration systems
+- Self-hosted AI infrastructure
+- MCP (Model Context Protocol) server development
+- Telegram, Slack, and Discord AI agents
+- Model-agnostic agent design
+- Human-in-the-loop agent workflows
+- AI agent security and isolation
+
+## Contact
+
+- Email: hi@iamamitkumar.dev
+- X: https://x.com/growthperclick
+- GitHub: https://github.com/ravenrepo
+- LinkedIn: https://www.linkedin.com/in/growthperclick/
+- Discovery call: https://cal.com/growthperclick/discovery-call

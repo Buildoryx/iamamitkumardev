@@ -56,6 +56,9 @@ export default async function BlogPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
       <Container className="flex-1">
+        <h1 className="sr-only">
+          Blog — AI Agents, MCP Tools & Build Logs by Amit Kumar
+        </h1>
         <p className="text-muted-foreground pt-4 font-mono text-xs tracking-widest uppercase">
           TECHNICAL WRITING ON PRODUCTION AI AGENTS, MCP TOOLS, SELF-HOSTED
           AUTOMATIONS, MULTI-AGENT WORKFLOWS, AND PRODUCT SHIPPING.

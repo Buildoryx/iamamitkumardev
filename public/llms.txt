@@ -1,0 +1,37 @@
+# Amit Kumar — Production AI Agents, MCP Tools & Automation Systems
+
+> I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams. My work focuses on agents that live inside real tools — Telegram, Slack, Discord, Postgres, Notion, CRMs, dashboards, and internal ops systems.
+
+## Core pages
+
+- [Home](https://iamamitkumar.dev/) — Portfolio and product overview
+- [Agents](https://iamamitkumar.dev/agents) — Production AI agent development services on Hermes & OpenClaw
+- [Blog](https://iamamitkumar.dev/blog) — Technical writing on AI agents, MCP tools, and build logs
+- [Tools](https://iamamitkumar.dev/tools) — AI agent tools and resources I recommend
+- [Workflow](https://iamamitkumar.dev/workflow) — My development stack and workflow
+
+## Products
+
+- [InvoBill](https://invobill.xyz) — Live inventory, GST billing, accounting, CRM for Indian SMBs
+- [LaunchSuite.tech](https://launchsuite.tech) — SaaS boilerplate MVP for founders
+- [Index Mavens](https://iamamitkumar.dev) — 8-agent trading intelligence system
+
+## Social
+
+- [X / Twitter](https://x.com/growthperclick)
+- [GitHub](https://github.com/ravenrepo)
+- [Substack](https://substack.com/@growthperclick)
+- [LinkedIn](https://www.linkedin.com/in/growthperclick/)
+- [Medium](https://medium.com/@dev.amitkumar)
+- [Peerlist](https://peerlist.io/growthperclick)
+
+## Blog topics
+
+- AI agent deployment and production hardening
+- Hermes Agent (Nous Research) setup and customization
+- OpenClaw agent framework
+- Multi-agent orchestration
+- MCP (Model Context Protocol) servers
+- Self-hosted AI infrastructure on Hetzner, Hostinger, DigitalOcean
+- SaaS building and product shipping
+- Growth experiments and distribution

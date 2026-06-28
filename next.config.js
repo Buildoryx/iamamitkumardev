@@ -124,6 +124,8 @@ module.exports = {
               '</.well-known/oauth-authorization-server>; rel="oauth-authorization-server"; type="application/json"',
               '</.well-known/oauth-protected-resource>; rel="oauth-protected-resource"; type="application/json"',
               '</.well-known/mcp/server-card.json>; rel="mcp-server"',
+              '</llms.txt>; rel="llms-txt"',
+              '</llms-full.txt>; rel="llms-txt"',
             ].join(", "),
           },
         ],
