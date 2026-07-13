@@ -25,6 +25,19 @@
 - [Medium](https://medium.com/@dev.amitkumar)
 - [Peerlist](https://peerlist.io/growthperclick)
 
+## High-intent technical posts
+
+- [Deploy Hermes Agent on Hetzner](https://iamamitkumar.dev/blog/deploy-hermes-agent-on-hetzner)
+- [Deploy Hermes agents to a VPS the right way](https://iamamitkumar.dev/blog/deploy-hermes-agents-to-vps-the-right-way)
+- [Best VPS for self-hosted AI agents (2026)](https://iamamitkumar.dev/blog/best-vps-for-self-hosted-ai-agents-2026)
+- [Hostinger VPS for self-hosted AI agents](https://iamamitkumar.dev/blog/hostinger-vps-for-self-hosted-ai-agents)
+- [OpenHuman vs Hermes vs OpenClaw](https://iamamitkumar.dev/blog/openhuman-vs-hermes-vs-openclaw)
+- [How I run 14 AI agents on one Hetzner VPS](https://iamamitkumar.dev/blog/run-14-ai-agents-on-single-hetzner-vps)
+- [OpenClaw setup guide](https://iamamitkumar.dev/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026)
+- [Why AI agent pilots fail before production](https://iamamitkumar.dev/blog/ai-agent-pilot-to-production)
+- [AI agent memory failures in production](https://iamamitkumar.dev/blog/beyond-context-window-ai-agent-memory-production-failures)
+- [MCP and safe tool use](https://iamamitkumar.dev/blog/why-your-ai-agent-cant-use-tools-safely-how-mcp-fixes-it)
+
 ## Blog topics
 
 - AI agent deployment and production hardening

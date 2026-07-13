@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site";
 
+/** Must revalidate or new DB posts never appear in sitemap until redeploy. */
+export const revalidate = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let blogPosts = await getPublishedPosts();
   const now = new Date();

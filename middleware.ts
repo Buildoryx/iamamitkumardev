@@ -38,44 +38,40 @@ function pageMarkdown(pathname: string): {
 } {
   if (pathname === "/") {
     return {
-      title: "Amit Kumar | Agentic Architect & Full-Stack Engineer",
+      title: "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
       description:
-        "Indie hacker building AI products in public — from LaunchSuite.tech to multi-agent systems, growth experiments, and fast MVP launches.",
-      body: `I'm an indie hacker shipping AI products in public. I go from idea to MVP fast, test demand, and iterate weekly. I share the full journey on [X / Twitter](https://x.com/growthperclick) — wins, mistakes, and what actually worked.
+        "I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams using Hermes, OpenClaw, Claude, OpenAI, Supabase, and Next.js.",
+      body: `I build **production AI agents**, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams. Agents that live inside real tools — Telegram, Slack, Discord, Postgres, Notion, CRMs, and internal ops systems.
 
-I launched [LaunchSuite.tech](https://launchsuite.tech) as a production SaaS boilerplate and pushed it to Product Hunt. I also build high-leverage products in AI automation, trading intelligence, and growth systems.
+## Hire / services
 
-I publish founder notes, build logs, and playbooks on [Substack](https://substack.com/@growthperclick) for builders who want speed plus real execution.
+- [Production AI agent development](/agents) — Hermes (Nous Research) & OpenClaw builds, self-hosted and model-agnostic
+- [AI agent tools I use](/tools) — practical stack notes for builders
 
-## Things I ship
+## Technical writing
 
-- [LaunchSuite.tech](https://launchsuite.tech) — shipped SaaS boilerplate MVP for founders.
-- [Product launches](https://www.producthunt.com) — public validation with real users.
-- [Build in public](https://x.com/growthperclick) — daily experiments on distribution, product, and growth loops.
+- [Blog](/blog) — deploy guides, framework comparisons, production hardening
+- [Deploy Hermes Agent on Hetzner](/blog/deploy-hermes-agent-on-hetzner)
+- [OpenHuman vs Hermes vs OpenClaw](/blog/openhuman-vs-hermes-vs-openclaw)
+- [Best VPS for self-hosted AI agents (2026)](/blog/best-vps-for-self-hosted-ai-agents-2026)
+- [How I run 14 AI agents on one Hetzner VPS](/blog/run-14-ai-agents-on-single-hetzner-vps)
 
-## Building now
+## Products
 
-- [InvoBill](/projects/invobill) — live inventory, GST billing, accounting, attendance, CRM, lead management, and financial reporting platform for Indian SMBs. Visit [invobill.xyz](https://invobill.xyz).
-- VidoTask — turns saved social content into actionable plans. Try [vidotask.com](https://vidotask.com) (in active development).
-- ComplianceHQ — AI-powered compliance automation for startup security readiness.
-- SharkOS — LinkedIn operating system replacing multiple GTM SaaS tools.
-- BrandCo — AI brand strategy engine for conversion-led positioning.
-- JARVIS OS — local-first AI morning briefing assistant for focused execution.
+- [InvoBill](/projects/invobill) — inventory, GST billing, accounting, CRM for Indian SMBs ([invobill.xyz](https://invobill.xyz))
+- [LaunchSuite.tech](https://launchsuite.tech) — SaaS boilerplate MVP for founders
 
-### How VidoTask fixes it
+## Social
 
-1. **Auto-import saves** — Connect Instagram, TikTok, and LinkedIn; saves sync automatically with no manual entry.
-2. **AI-powered task extraction** — Each save becomes concrete next steps (e.g. recipe → grocery list, tutorial → schedule).
-3. **Actionable plans, not bookmarks** — Structured tasks with deadlines and context instead of a dead save folder.
+- [X / Twitter](https://x.com/growthperclick)
+- [Substack](https://substack.com/@growthperclick)
+- [GitHub](https://github.com/ravenrepo)
 
 ## Explore
 
-- [iamamitkumar.dev](https://iamamitkumar.dev) — home
-- [Blog](/blog)
+- [Home](https://iamamitkumar.dev/)
 - [Newsletter](/newsletter)
 - [Workflow](/workflow)
-- [Tweets](/tweets)
-- [Sponsor](/sponsor)
 `,
     };
   }
@@ -118,11 +114,13 @@ Indian businesses that want operational visibility across stock, invoices, expen
 
 ## Recent writing
 
-- [Why Your AI Agent Pilot Never Makes It to Production (And How to Fix It)](/blog/ai-agent-pilot-to-production)
+- [Deploy Hermes Agent on Hetzner](/blog/deploy-hermes-agent-on-hetzner)
+- [Best VPS for self-hosted AI agents (2026)](/blog/best-vps-for-self-hosted-ai-agents-2026)
+- [OpenHuman vs Hermes vs OpenClaw](/blog/openhuman-vs-hermes-vs-openclaw)
+- [How I run 14 AI agents on one Hetzner VPS](/blog/run-14-ai-agents-on-single-hetzner-vps)
 - [How to Set Up OpenClaw: A Builder's Honest Setup Guide (2026)](/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026)
-- [What's Actually Inside Claude Code (It's More Impressive Than You Think)](/blog/what-is-inside-claude-code)
-- [How to Build Enterprise-Grade, Production-Ready AI Agents](/blog/how-to-build-enterprise-grade-production-ready-ai-agents)
-- [Building Enterprise-Grade Production-Ready AI Agents: My Practical Guide to Deployment](/blog/building-enterprise-grade-production-ready-ai-agents-my-practical-guide-to-deployment)
+- [Why Your AI Agent Pilot Never Makes It to Production](/blog/ai-agent-pilot-to-production)
+- [MCP and safe tool use](/blog/why-your-ai-agent-cant-use-tools-safely-how-mcp-fixes-it)
 
 ## Stay in the loop
 
@@ -227,8 +225,11 @@ I help you pick on the discovery call.
 
 ## Related reading
 
+- [Deploy Hermes Agent on Hetzner](/blog/deploy-hermes-agent-on-hetzner)
+- [OpenHuman vs Hermes vs OpenClaw](/blog/openhuman-vs-hermes-vs-openclaw)
+- [Best VPS for self-hosted AI agents (2026)](/blog/best-vps-for-self-hosted-ai-agents-2026)
+- [How I run 14 AI agents on one Hetzner VPS](/blog/run-14-ai-agents-on-single-hetzner-vps)
 - [How to Set Up OpenClaw — A Builder's Honest Setup Guide (2026)](/blog/how-to-set-up-openclaw-a-builder-s-honest-setup-guide-2026)
-- [How to Build Enterprise-Grade, Production-Ready AI Agents](/blog/how-to-build-enterprise-grade-production-ready-ai-agents)
 - [Why Your AI Agent Pilot Never Makes It to Production](/blog/ai-agent-pilot-to-production)
 
 ## Canonical URL

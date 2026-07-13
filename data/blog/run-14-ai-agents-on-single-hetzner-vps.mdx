@@ -1,0 +1,332 @@
+---
+title: "How I Run 14 AI Agents on a Single Hetzner VPS"
+publishedAt: "2026-07-09"
+summary: "The architecture behind running 14 specialist AI agents on one Hetzner box: SQLite kanban coordination, credential pool rotation, Tailscale networking, and what actually breaks at scale."
+image: "/static/images/run-14-ai-agents-on-single-hetzner-vps/cover.png"
+tags: ["hermes-agent", "multi-agent", "hetzner", "self-hosted-ai", "agent-orchestration", "production-architecture", "sqlite", "tailscale"]
+---
+
+I run 14 specialist AI agents on a single Hetzner VPS. They share one box, one SQLite database, one credential pool, and one Discord gateway. Total cost: under $10/month.
+
+This post is the architecture behind that setup — the coordination system, the identity pattern, the credential rotation, and the five things that broke before I got it right. If you've got one agent running and want to scale to a multi-agent stack without spinning up multiple servers, this is the post.
+
+---
+
+## The setup at a glance
+
+- **VPS:** Hetzner CCX13 (4 vCPU, 8GB RAM, ~€8/month)
+- **Agent framework:** Hermes Agent (Nous Research) for 13 agents, OpenHuman for 1
+- **Coordination:** SQLite kanban — one database, atomic claims, dependency chains
+- **Identity:** `SOUL.md` (per-agent personality) + `AGENTS.md` (mission brief)
+- **Gateway:** Discord-first — I talk to the Commander in a private channel; it delegates
+- **Networking:** Tailscale mesh only — no public ports on the VPS
+- **Memory:** Two layers — recent context (in-memory) + cross-session knowledge (Hindsight vector store)
+- **Credential management:** Auto-rotating pool with provider fallback
+
+---
+
+## The 14 agents and what each does
+
+Each agent has a narrow scope. Vague agents do vague work — specificity is the design principle.
+
+| # | Agent | Role |
+|---|-------|------|
+| 1 | **Commander** | Orchestrator. Receives my requests, breaks them into tasks, delegates to specialists, tracks progress via kanban. |
+| 2 | **Concierge** | Client-facing. Handles discovery calls, qualification, follow-ups, and lead routing. |
+| 3 | **Research** | Deep research. Web search, document analysis, competitive intelligence, data gathering. |
+| 4 | **Dreamer** | Ideation. Brainstorming, feature planning, product strategy, creative direction. |
+| 5 | **Coder** | Implementation. Code generation, refactoring, debugging, test writing. |
+| 6 | **QA** | Quality assurance. Code review, test execution, regression checks, deployment verification. |
+| 7 | **OSINT** | Open-source intelligence. Brand monitoring, competitor tracking, market signals. |
+| 8 | **Content-Studio** | Content creation. Blog drafts, social posts, newsletter writing, documentation. |
+| 9 | **SEO-Recon** | SEO analysis. Keyword research, technical audits, backlink monitoring, content optimization. |
+| 10 | **Finance** | Financial operations. Invoice processing, expense tracking, revenue reporting. |
+| 11 | **DevOps** | Infrastructure. Server monitoring, deployment automation, log analysis, alert routing. |
+| 12 | **Support** | Customer support. Ticket triage, response drafting, escalation routing. |
+| 13 | **Archive** | Knowledge management. Document organization, memory maintenance, knowledge graph updates. |
+| 14 | **Gatekeeper** | Deployment safety. Runs on OpenHuman — approves every production change before it goes live. |
+
+The Commander is the only agent I talk to directly. It delegates to the others via the kanban. I never DM the Coder or the Research agent — the Commander routes everything.
+
+---
+
+## Identity-first design (SOUL.md + AGENTS.md)
+
+Every agent has two files that define it:
+
+**`SOUL.md`** — the agent's personality, principles, and boundaries. Who it is, how it thinks, what it refuses to do.
+
+```markdown
+# SOUL.md — Research Agent
+
+## Identity
+Name: Research
+Role: Deep research and intelligence gathering
+
+## Principles
+- Source every claim. No hallucinated data.
+- Prefer primary sources over summaries.
+- Flag uncertainty explicitly — "I don't know" is a valid answer.
+- Return structured findings, not walls of text.
+
+## Boundaries
+- Do not execute code.
+- Do not modify files outside the workspace.
+- Do not send messages to external services.
+```
+
+**`AGENTS.md`** — the agent's current mission, active tasks, and context. What it's working on right now.
+
+```markdown
+# AGENTS.md — Research Agent
+
+## Current mission
+Competitive analysis of self-hosted AI agent frameworks (2026 landscape)
+
+## Active tasks
+- [ ] Benchmark Hermes vs OpenClaw vs OpenHuman
+- [ ] Survey VPS providers for agent hosting
+- [ ] Track funding and acquisitions in AI agent space
+
+## Context
+Commander assigned this sprint on 2026-07-01. Deadline: 2026-07-15.
+```
+
+The two-file pattern matters because `SOUL.md` changes rarely (maybe once a month), while `AGENTS.md` changes daily. Separating identity from mission keeps the agent stable while its work evolves.
+
+---
+
+## Coordination via SQLite kanban
+
+I tried message queues, event buses, and in-memory task lists. They all broke in the same way: no audit trail, no dependency tracking, and no way to see what's happening when three agents are working on the same task.
+
+SQLite fixed all of that. One database file, atomic claims, dependency chains, retries, and a complete audit trail.
+
+### The schema
+
+```sql
+CREATE TABLE tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'pending',  -- pending, claimed, in_progress, done, failed
+  assigned_to TEXT,                -- agent name
+  claimed_at DATETIME,
+  completed_at DATETIME,
+  dependencies TEXT,               -- JSON array of task IDs
+  priority INTEGER DEFAULT 0,
+  retry_count INTEGER DEFAULT 0,
+  max_retries INTEGER DEFAULT 3,
+  result TEXT,
+  error TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id INTEGER,
+  agent TEXT,
+  action TEXT,
+  details TEXT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### How it works
+
+1. **Commander** creates a task and assigns it to an agent
+2. The agent **claims** the task with an atomic `UPDATE ... SET status='claimed', assigned_to='AgentName' WHERE status='pending' AND id=?`
+3. The agent **executes** the work, writes results to the `result` column
+4. The agent **marks done** or **failed**
+5. If failed, the Commander checks `retry_count` against `max_retries` and either re-queues or escalates
+
+The atomicity is critical. Without `WHERE status='pending'`, two agents could claim the same task. SQLite's write lock prevents this — only one writer at a time, and the claim is atomic.
+
+### Dependencies
+
+Tasks can depend on other tasks. The Research agent might need to finish "Gather competitor data" before the Content-Studio can start "Write competitive analysis." The Commander checks `dependencies` before assigning — if a dependency isn't `done`, the task stays `pending`.
+
+```sql
+-- Check if all dependencies are met
+SELECT COUNT(*) FROM tasks
+WHERE id IN (SELECT value FROM json_each('["1","2","3"]'))
+AND status != 'done';
+```
+
+If the count is 0, all dependencies are satisfied. The task can be claimed.
+
+---
+
+## Credential pool and fallback chain
+
+Running 14 agents means 14 sets of API calls — OpenAI, Anthropic, OpenRouter, Telegram, Discord, various MCP servers. If one provider rate-limits you, the entire stack shouldn't go down.
+
+### The pool
+
+```yaml
+# credential-pool.yaml
+providers:
+  - name: openai-primary
+    type: openai
+    apiKey: ${OPENAI_KEY_1}
+    priority: 1
+    rateLimit:
+      requestsPerMinute: 500
+      tokensPerMinute: 80000
+
+  - name: openai-secondary
+    type: openai
+    apiKey: ${OPENAI_KEY_2}
+    priority: 2
+    rateLimit:
+      requestsPerMinute: 500
+      tokensPerMinute: 80000
+
+  - name: anthropic-fallback
+    type: anthropic
+    apiKey: ${ANTHROPIC_KEY}
+    priority: 3
+    rateLimit:
+      requestsPerMinute: 100
+      tokensPerMinute: 40000
+
+  - name: openrouter-backup
+    type: openrouter
+    apiKey: ${OPENROUTER_KEY}
+    priority: 4
+    rateLimit:
+      requestsPerMinute: 200
+      tokensPerMinute: 100000
+```
+
+### How fallback works
+
+When an agent needs to call an LLM:
+
+1. Pick the highest-priority provider that hasn't hit its rate limit
+2. Make the call
+3. If 429 (rate limited), mark the provider as temporarily exhausted and try the next one
+4. If all providers are exhausted, queue the task and retry after the earliest cooldown
+
+Auto-rotation means I never manually swap API keys. When OpenAI rate-limits my primary key, the pool silently switches to the secondary, then to Anthropic, then to OpenRouter. The agents don't notice.
+
+---
+
+## Discord-first ops with cron
+
+I talk to one agent — the Commander — in a private Discord channel. The Commander reads my messages, breaks them into tasks, and delegates via kanban. I never interact with the other 13 agents directly.
+
+The Discord gateway is the single entry point. It parses commands, creates kanban entries, and responds with status updates. Everything else happens in the background.
+
+Cron handles recurring work:
+
+```yaml
+# crons.yaml
+- name: daily-report
+  schedule: "0 9 * * *"  # 9am daily
+  agent: Finance
+  task: "Generate daily revenue and expense summary"
+
+- name: seo-audit
+  schedule: "0 6 * * 1"  # 6am Monday
+  agent: SEO-Recon
+  task: "Run full site SEO audit, flag regressions"
+
+- name: competitor-watch
+  schedule: "0 8 * * *"  # 8am daily
+  agent: OSINT
+  task: "Check competitor sites for changes, new features, pricing updates"
+
+- name: support-triage
+  schedule: "*/15 * * * *"  # every 15 minutes
+  agent: Support
+  task: "Check support inbox, draft responses for Commander review"
+```
+
+Cron fires the task into the kanban. The assigned agent picks it up, does the work, and writes results. If the task requires human review (like the Support agent's drafted responses), it goes to the Commander for my approval.
+
+---
+
+## Two-layer memory
+
+The agents need to remember two kinds of things:
+
+1. **Recent context** — what happened in the last few conversations. Fast, in-memory, ephemeral.
+2. **Cross-session knowledge** — what the agents learned over weeks and months. Persistent, vector-indexed, semantic.
+
+### Layer 1: Recent context
+
+Each agent keeps a rolling window of recent interactions in memory. This is the "working memory" — fast to access, lost on reboot. Hermes handles this natively.
+
+### Layer 2: Cross-session knowledge (Hindsight)
+
+Hindsight is Hermes's memory layer — a vector store that persists across sessions. When the Research agent finds an important insight, it writes a memory to Hindsight. Weeks later, when the Content-Studio needs context for a blog post, it queries Hindsight by meaning (semantic search) and retrieves the relevant insights.
+
+This is the compounding effect. An agent that's been running for three months has three months of accumulated knowledge. An agent that started yesterday has nothing.
+
+---
+
+## Private-by-default networking
+
+Every agent on the VPS communicates over Tailscale. No public ports. No exposed dashboards. No SSH to the outside world.
+
+```bash
+# Tailscale status shows all connected devices
+$ tailscale status
+hostname          ip          os       software
+luciousfox-lap    100.x.x.1   macOS    1.62.1
+hermes-vps        100.x.x.2   linux    1.62.1
+phone             100.x.x.3   android  1.62.1
+```
+
+The VPS is reachable only from devices on my tailnet. My laptop, my phone, and the Telegram webhook proxy (a small Cloudflare Worker) are the only things that can talk to the agents.
+
+This is non-negotiable for production. An agent with a public-facing dashboard is a target. An agent on a Tailscale-only network is invisible.
+
+---
+
+## What broke at scale
+
+Five things went wrong before the architecture stabilized:
+
+**SQLite WAL contention.** When three agents try to write to the kanban simultaneously, SQLite's WAL (Write-Ahead Logging) mode handles it — but only if all connections use WAL mode. One agent connecting in journal mode caused lock timeouts. Fix: enforce WAL mode on every connection with `PRAGMA journal_mode=WAL;`.
+
+**Discord rate limits.** Discord's API rate-limits at 50 requests/second per channel. When the Commander delegates to multiple agents simultaneously, the status updates can hit this limit. Fix: batch status updates into a single message every 30 seconds instead of sending one per task.
+
+**Hetzner IPv6 quirks.** Hetzner's VPS instances prefer IPv6. Some API providers (including older OpenAI endpoints) don't handle IPv6 well. Fix: add `precedence ::ffff:0:0/96 100` to `/etc/gai.conf` to prefer IPv4 for outbound connections.
+
+**Model provider 429s at scale.** With 14 agents making API calls, the combined request volume occasionally triggers rate limits across all providers. Fix: the credential pool with fallback (described above) plus per-agent request throttling in the Hermes config.
+
+**Memory growth.** Hindsight's vector store grew to 2GB after three months of daily use. The agents' response time increased as the vector index got larger. Fix: periodic memory consolidation — archive old memories to cold storage and rebuild the index monthly.
+
+---
+
+## Could you do this?
+
+Yes. You don't need 14 agents to benefit from this architecture. The smallest version that works:
+
+- **1 Commander** — orchestrates everything
+- **1 Specialist** — does the actual work (Coder, Research, or Content-Studio)
+- **SQLite kanban** — coordinates between them
+- **Credential pool** — handles API key rotation
+
+Start with [deploying a single Hermes agent on Hetzner](/blog/deploy-hermes-agent-on-hetzner). Once that's stable, add a second agent and a kanban. The architecture scales linearly — each new agent is just another row in the `agents` table and another `SOUL.md` file.
+
+If you're choosing between frameworks, read the [OpenHuman vs Hermes vs OpenClaw comparison](/blog/openhuman-vs-hermes-vs-openclaw) to see which one fits your use case. If you're still picking a VPS, read the [VPS comparison](/blog/best-vps-for-self-hosted-ai-agents-2026).
+
+---
+
+## What to do next
+
+- **Deploy your first agent:** [Hermes on Hetzner walkthrough](/blog/deploy-hermes-agent-on-hetzner) — the full setup from zero to production.
+- **Compare frameworks:** [OpenHuman vs Hermes vs OpenClaw](/blog/openhuman-vs-hermes-vs-openclaw) — which framework fits your use case.
+- **Pick a VPS:** [Best VPS for self-hosted AI agents](/blog/best-vps-for-self-hosted-ai-agents-2026) — real benchmarks across Hetzner, Hostinger, and DigitalOcean.
+- **See the full stack:** [AI-first dev stack](/workflow) — the complete picture of tools, frameworks, and infrastructure.
+- **Subscribe:** Get weekly build logs on [Substack](https://substack.com/@growthperclick).
+
+---
+
+## What's next
+
+If you're building your own multi-agent setup, the [OpenHuman vs Hermes vs OpenClaw comparison](/blog/openhuman-vs-hermes-vs-openclaw) is probably the next thing to read. Or, if you'd rather have me build it for you, [see the agent-build offer](/agents) or [book a 20-minute discovery call](https://cal.com/growthperclick/discovery-call).

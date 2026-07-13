@@ -8,11 +8,22 @@ import { DottedSeparator } from "@/components/separator";
 import { BlogArticleShell } from "@/components/blog/blog-article-shell";
 import { ClapButton } from "@/components/blog/clap-button";
 import { NewsletterCTA } from "@/components/blog/newsletter-cta";
-import { getPublishedPosts, getPostBySlug, parseTags, SITE_URL } from "@/lib/blog";
+import {
+  getPostBySlug,
+  getPublishedPosts,
+  getRelatedPosts,
+  parseTags,
+  resolvePostSeo,
+  stripLeadingH1,
+  SITE_URL,
+} from "@/lib/blog";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+/** Keep post pages fresh when agents/admin publish via revalidatePath. */
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const posts = await getPublishedPosts();
@@ -30,29 +41,29 @@ export async function generateMetadata({
   }
 
   const url = `${SITE_URL}/blog/${post.slug}`;
-
-  const articleDescription =
-    post.excerpt || post.summary || `Blog post by Amit Kumar — ${post.title}`;
+  const { title: seoTitle, description: articleDescription } =
+    resolvePostSeo(post);
+  const ogImage = post.image || post.coverImage || "/images/og-image.png";
 
   return {
-    title: post.title,
+    title: seoTitle,
     description: articleDescription,
     alternates: { canonical: url },
     openGraph: {
-      title: post.title,
+      title: seoTitle,
       description: articleDescription,
       url,
       type: "article",
       publishedTime: post.publishedAt || undefined,
       modifiedTime: post.updatedAt || post.publishedAt || undefined,
       authors: ["Amit Kumar"],
-      images: post.image ? [post.image] : ["/images/og-image.png"],
+      images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
+      title: seoTitle,
       description: articleDescription,
-      images: post.image ? [post.image] : ["/images/og-image.png"],
+      images: [ogImage],
     },
     other: {
       "article:reading_time": post.readingTime?.replace(" min read", "") || "",
@@ -72,13 +83,15 @@ export default async function BlogPostPage({ params }: PageProps) {
     1,
     Math.ceil(post.content.split(/\s+/).filter(Boolean).length / 225),
   );
-  const related = (await getPublishedPosts())
-    .filter(
-      (candidate) => candidate.slug !== post.slug && candidate.publishedAt,
-    )
-    .slice(0, 3);
+  const postTags = parseTags(post.tags);
+  const related = await getRelatedPosts(post.slug, postTags, 3);
   const pageUrl = `${SITE_URL}/blog/${post.slug}`;
-  const articleDescription = post.excerpt || post.summary || "";
+  const { title: seoTitle, description: articleDescription } =
+    resolvePostSeo(post);
+  const ogImage =
+    post.image || post.coverImage || `${SITE_URL}/images/og-image.png`;
+  // Body often repeats the title as `# Heading`; shell already renders the H1.
+  const bodyMarkdown = stripLeadingH1(post.content);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -95,12 +108,10 @@ export default async function BlogPostPage({ params }: PageProps) {
     ],
   };
 
-  const postTags = parseTags(post.tags);
-
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: post.title,
+    headline: seoTitle,
     description: articleDescription,
     datePublished: post.publishedAt,
     dateModified: post.updatedAt || post.publishedAt,
@@ -114,7 +125,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     inLanguage: "en-US",
     wordCount: post.wordCount || undefined,
     keywords: postTags.length > 0 ? postTags.join(", ") : undefined,
-    image: post.image ? [post.image] : [`${SITE_URL}/images/og-image.png`],
+    image: [ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`],
   };
 
   return (
@@ -145,7 +156,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           readingTime: { text: `${readingTime} min read` },
         }}
       >
-        <Markdown remarkPlugins={[remarkGfm]}>{post.content}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{bodyMarkdown}</Markdown>
       </BlogArticleShell>
 
       <Container>

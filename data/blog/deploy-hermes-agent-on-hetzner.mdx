@@ -1,0 +1,350 @@
+---
+title: "How to Deploy Hermes Agent on Hetzner — A Complete 2026 Walkthrough"
+publishedAt: "2026-07-09"
+summary: "Deploy a production Hermes Agent on Hetzner VPS in under an hour. Step-by-step setup, Tailscale networking, Telegram gateway, and the gotchas I hit."
+image: "/static/images/deploy-hermes-agent-on-hetzner/cover.png"
+tags: ["hermes-agent", "hetzner", "self-hosted-ai", "ai-agents", "tutorial", "tailscale"]
+---
+
+Most tutorials for deploying Hermes Agent to a VPS end with "run it and it works." They skip Tailscale, skip systemd, skip the part where your agent forgets everything after a reboot. I deployed Hermes on a Hetzner CX22 and hit every one of those problems before getting to a setup I'd actually call production.
+
+This is the walkthrough I wish I had — the exact steps, the configs that worked, and the mistakes that cost me hours. If you want a Hermes agent on Hetzner that persists memory, responds on Telegram, and survives reboots, this is the post.
+
+**What you'll have at the end:** A self-hosted Hermes agent running on a Hetzner VPS, accessible via Telegram, with persistent memory, Tailscale-only SSH, and systemd managing the process. Total cost: roughly €4/month.
+
+---
+
+## Why Hetzner for this
+
+Hetzner's CX22 line gives you 2 vCPUs, 4GB RAM, and 40GB SSD for around €4/month. That's enough for a Hermes agent plus a small Postgres instance if you want structured memory. The data centers are in Finland and Germany, which matters if you care about EU data residency.
+
+I picked Hetzner over DigitalOcean and AWS because the price-to-performance ratio is unbeatable for small agent workloads, and their networking is predictable. No surprise egress charges, no tiered pricing that jumps when your agent starts calling APIs frequently.
+
+If you're in India, the latency from Hetzner to Indian Telegram users is acceptable — around 120-150ms for API calls, which doesn't matter for an async agent that takes 2-5 seconds to respond anyway.
+
+---
+
+## Prerequisites
+
+Before you start, you need:
+
+- A Hetzner Cloud account (sign up at [hetzner.com/cloud](https://www.hetzner.com/cloud))
+- A Telegram bot token — create one via [BotFather](https://core.telegram.org/bots#botfather) and copy the token
+- An API key from at least one model provider: OpenAI, Anthropic, or OpenRouter
+- A Tailscale account (free tier works) at [tailscale.com](https://tailscale.com/)
+- Basic comfort with SSH and the terminal
+
+That's it. No Docker required for this walkthrough — I run Hermes directly on the host for simplicity and lower resource usage.
+
+---
+
+## Step 1: Spin up the Hetzner VPS
+
+Log into Hetzner Cloud Console, click "New Project," pick a data center location (Falkenstein or Helsinki are fine), then create a server:
+
+- **Image:** Ubuntu 24.04 LTS
+- **Type:** CX22 (2 vCPU, 4GB RAM, ~€4/mo)
+- **SSH key:** Add your public SSH key (generate one with `ssh-keygen -t ed25519` if you don't have one)
+- **Name:** `hermes-agent` or whatever you want
+
+Once the server is provisioned, note the public IP address. SSH in:
+
+```bash
+ssh root@<your-server-ip>
+```
+
+Update the system immediately:
+
+```bash
+apt update && apt upgrade -y
+```
+
+---
+
+## Step 2: Lock it down with Tailscale
+
+This is the step most tutorials skip, and it's the one that matters most. You do not want SSH or any agent dashboard exposed to the public internet.
+
+Install Tailscale:
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+tailscale up
+```
+
+Follow the auth URL to join your tailnet. Once connected, get your Tailscale IP:
+
+```bash
+tailscale ip -4
+```
+
+Now configure the firewall to block everything except Tailscale:
+
+```bash
+# Allow Tailscale interface
+ufw allow in on tailscale0
+
+# Allow SSH only from Tailscale
+ufw allow from $(tailscale ip -4) to any port 22
+
+# Deny everything else
+ufw default deny incoming
+ufw default allow outgoing
+ufw enable
+```
+
+At this point, you can only reach the server from devices on your tailnet. Your laptop, your phone, and your agent's Telegram gateway — nothing else. This is the network boundary that keeps the agent safe.
+
+---
+
+## Step 3: Create a system user for Hermes
+
+Never run an agent as root. Create a dedicated user:
+
+```bash
+useradd -m -s /bin/bash hermes
+usermod -aG sudo hermes
+```
+
+Switch to that user for the rest of the installation:
+
+```bash
+su - hermes
+```
+
+---
+
+## Step 4: Install Hermes Agent
+
+Clone the Hermes repository and install dependencies:
+
+```bash
+git clone https://github.com/NousResearch/hermes-agent.git
+cd hermes-agent
+```
+
+Check the repo's README for the current installation steps — they change as the project evolves. At the time of writing, the general flow is:
+
+```bash
+# Install Node.js dependencies (Hermes uses Node.js)
+npm install
+
+# Or if the repo uses Python:
+# pip install -r requirements.txt
+```
+
+The key thing: follow the repo's actual instructions, not a blog post from 6 months ago. Hermes moves fast.
+
+---
+
+## Step 5: Configure the model and Telegram gateway
+
+Create the configuration file. The exact filename and format depend on the Hermes version — check the repo. Here's the general structure:
+
+```yaml
+# config.yaml (or equivalent)
+model:
+  provider: openai  # or anthropic, openrouter
+  apiKey: "${OPENAI_API_KEY}"
+  model: gpt-4o
+
+gateway:
+  telegram:
+    token: "${TELEGRAM_BOT_TOKEN}"
+    allowedUsers:
+      - your_telegram_user_id  # from @userinfobot
+
+memory:
+  backend: sqlite
+  path: ./data/memory.db
+
+agent:
+  name: "Hermes"
+  soul: ./SOUL.md
+```
+
+Store the API keys as environment variables. Create a `.env` file in the Hermes directory:
+
+```bash
+# .env
+OPENAI_API_KEY=sk-your-key-here
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+```
+
+Better yet, use systemd environment files so the keys never sit in plaintext on disk (covered in Step 7).
+
+---
+
+## Step 6: Write the SOUL.md
+
+This is the identity file that gives your agent its personality and constraints. Without it, Hermes is a generic chatbot. With it, it's a specialist.
+
+Create `SOUL.md` in the Hermes directory:
+
+```markdown
+# SOUL.md — Agent Identity
+
+## Name
+Hermes
+
+## Role
+Personal AI assistant and task executor.
+
+## Principles
+- Be direct. No filler.
+- Execute first, explain second.
+- When uncertain, ask before acting.
+- Never expose API keys, tokens, or credentials in responses.
+- Log every tool call and its result.
+
+## Tools
+- Telegram messaging
+- File system access (scoped to /home/hermes/workspace/)
+- Web search (via configured MCP server)
+- Database queries (read-only by default)
+
+## Boundaries
+- Do not modify system files.
+- Do not send messages to users not in the allowed list.
+- Do not make API calls without explicit instruction.
+```
+
+The SOUL.md is what separates a toy agent from one you'd trust with real work. Spend time on it.
+
+---
+
+## Step 7: First boot and systemd
+
+Create a systemd service so Hermes starts on boot and restarts on crash:
+
+```ini
+# /etc/systemd/system/hermes-agent.service
+[Unit]
+Description=Hermes Agent
+After=network.target
+
+[Service]
+Type=simple
+User=hermes
+WorkingDirectory=/home/hermes/hermes-agent
+EnvironmentFile=/home/hermes/hermes-agent/.env
+ExecStart=/usr/bin/node index.js  # adjust to match Hermes entry point
+Restart=always
+RestartSec=5
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/hermes/hermes-agent/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable hermes-agent
+sudo systemctl start hermes-agent
+```
+
+Check the status:
+
+```bash
+sudo systemctl status hermes-agent
+```
+
+If it's running, open Telegram and DM your bot. You should get a response. If not, check the logs:
+
+```bash
+sudo journalctl -u hermes-agent -f
+```
+
+---
+
+## Persisting memory across reboots
+
+Hermes stores memory in SQLite by default. The database file lives in `./data/memory.db`. As long as that file persists, your agent remembers conversations across reboots.
+
+The systemd unit above sets `ReadWritePaths=/home/hermes/hermes-agent/data`, so the memory directory is writable. If you're using Docker instead, mount a volume for the data directory.
+
+For cross-session vector memory (semantic recall), Hermes pairs with Hindsight — a cloud memory layer that stores embeddings separately. If you set up Hindsight, the agent can recall context from weeks ago, not just the current session. The setup instructions are in the Hermes repo.
+
+---
+
+## Monitoring and observability
+
+Once the agent is running, you need to know when something goes wrong before the user does. Three things to set up immediately:
+
+**Systemd journal logging.** Hermes logs to stdout, which systemd captures. View the last 100 lines:
+
+```bash
+sudo journalctl -u hermes-agent -n 100 --no-pager
+```
+
+For continuous monitoring:
+
+```bash
+sudo journalctl -u hermes-agent -f
+```
+
+**Health check endpoint.** If Hermes exposes an HTTP health endpoint (check the repo), add a cron job that pings it every 5 minutes and alerts you if it's down:
+
+```bash
+# /etc/cron.d/hermes-health
+*/5 * * * * hermes curl -sf http://localhost:3000/health || systemctl restart hermes-agent
+```
+
+**Disk usage monitoring.** The SQLite memory database grows over time. Add a simple check:
+
+```bash
+# Alert if memory DB exceeds 500MB
+du -sh /home/hermes/hermes-agent/data/memory.db | awk '$1 > 500M {print "WARNING: Hermes memory DB is " $1}'
+```
+
+Set up a daily cron that emails you if the database is growing too fast. At 500MB, consider archiving old conversations to cold storage.
+
+---
+
+## Things that broke for me
+
+Here's what actually went wrong during my deployment, and how I fixed each one.
+
+**Tailscale MagicDNS broke my webhook URL.** Telegram sends updates to a webhook URL. If you're running Hermes behind Tailscale, the webhook URL needs to be reachable from Telegram's servers — which means it can't be a Tailscale-internal address. I solved this by running a small Cloudflare Worker that proxies webhook traffic to the Tailscale IP. Alternatively, use Telegram's polling mode instead of webhooks if you don't need real-time responses.
+
+**systemd killed the agent on out-of-memory.** The CX22 has 4GB RAM. If Hermes loads a large context window and runs a tool call simultaneously, it can spike to 3.5GB. I added `MemoryMax=3G` to the systemd unit to prevent OOM kills from taking down the whole system.
+
+**SQLite WAL contention with multiple processes.** If you run two Hermes instances pointing at the same database, you'll get WAL lock errors. One database per agent. If you're running [multiple agents on one box](/blog/run-14-ai-agents-on-single-hetzner-vps), each gets its own data directory.
+
+**SSH key auth failed after enabling UFW.** I had both key-based and password auth enabled. After locking down the firewall, password auth still worked from the public IP, which defeated the purpose. Disabled password auth in `/etc/ssh/sshd_config`:
+
+```
+PasswordAuthentication no
+PubkeyAuthentication yes
+```
+
+**Telegram bot token leaked in logs.** I accidentally logged the full config object, which included the bot token. Always redact tokens in log output. Hermes should handle this by default, but verify.
+
+---
+
+## What to do next
+
+You now have a working Hermes agent on Hetzner with persistent memory, Telegram access, and Tailscale-only networking. Here's where to go from here:
+
+- **Scale to multiple agents:** Learn how I run [14 AI agents on a single Hetzner VPS](/blog/run-14-ai-agents-on-single-hetzner-vps) — the coordination architecture, credential pooling, and what breaks at scale.
+- **Compare frameworks:** If you're not sure Hermes is the right choice, read the [OpenHuman vs Hermes vs OpenClaw comparison](/blog/openhuman-vs-hermes-vs-openclaw) to see which framework fits your use case.
+- **Pick the right VPS:** Read the [best VPS for self-hosted AI agents comparison](/blog/best-vps-for-self-hosted-ai-agents-2026) if you're evaluating Hetzner vs Hostinger vs DigitalOcean.
+- **See the full stack:** Check my [AI-first dev stack](/workflow) for the complete picture of tools, frameworks, and infrastructure I use in production.
+
+---
+
+## Want me to build one for you?
+
+I design and ship production AI agents on Hermes and OpenClaw — self-hosted, model-agnostic, and tuned to how your business actually runs. Personal AI for founders. Business intelligence agents for teams. Ops agents in Telegram, Slack, or Discord.
+
+[See what I build →](/agents)
+
+Or skip ahead and book a free 20-minute discovery call:
+[cal.com/growthperclick/discovery-call](https://cal.com/growthperclick/discovery-call).

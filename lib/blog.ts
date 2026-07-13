@@ -69,6 +69,33 @@ export function serializeTags(tags: string[]): string {
   return JSON.stringify(tags);
 }
 
+/**
+ * Remove a leading markdown H1 so the page shell can own the single document H1.
+ * Handles ATX (`# Title`) and setext (`Title\n===`) forms, with optional BOM/whitespace.
+ */
+export function stripLeadingH1(content: string): string {
+  if (!content) return content;
+  return content
+    .replace(/^\uFEFF?/, "")
+    .replace(/^\s*#\s+[^\n]+\n+/, "")
+    .replace(/^\s*[^\n]+\n={2,}\s*\n+/, "");
+}
+
+/** Prefer dedicated SEO fields, then excerpt/summary, then a safe fallback. */
+export function resolvePostSeo(post: {
+  title: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  excerpt?: string | null;
+  summary?: string | null;
+}): { title: string; description: string } {
+  const title = (post.metaTitle || post.title || "").trim() || post.title;
+  const description =
+    (post.metaDescription || post.excerpt || post.summary || "").trim() ||
+    `Blog post by Amit Kumar — ${post.title}`;
+  return { title, description };
+}
+
 function mapMdxToPostSummary(
   slug: string,
   data: Record<string, any>,
@@ -305,15 +332,22 @@ export async function getRelatedPosts(
   limit = 3
 ): Promise<Post[]> {
   const allPosts = await getPublishedPosts();
+  const others = allPosts.filter((post) => post.slug !== currentSlug);
 
-  return allPosts
-    .filter((post) => post.slug !== currentSlug)
-    .filter((post) => {
-      if (tags.length === 0) return true;
-      const postTags = parseTags(post.tags);
-      return postTags.some((t) => tags.includes(t));
-    })
-    .slice(0, limit);
+  if (tags.length === 0) {
+    return others.slice(0, limit);
+  }
+
+  const tagged = others.filter((post) => {
+    const postTags = parseTags(post.tags);
+    return postTags.some((t) => tags.includes(t));
+  });
+
+  // Prefer topical overlap; backfill with latest so the block never looks empty.
+  if (tagged.length >= limit) return tagged.slice(0, limit);
+  const seen = new Set(tagged.map((p) => p.slug));
+  const backfill = others.filter((p) => !seen.has(p.slug));
+  return [...tagged, ...backfill].slice(0, limit);
 }
 
 export async function getAllTags(): Promise<string[]> {

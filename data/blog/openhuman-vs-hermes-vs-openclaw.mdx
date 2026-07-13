@@ -1,0 +1,237 @@
+---
+title: "OpenHuman vs Hermes vs OpenClaw — When to Use Each Open-Source Agent Framework"
+publishedAt: "2026-07-09"
+summary: "A no-fluff comparison of OpenHuman, Hermes (Nous Research), and OpenClaw — three open-source AI agent frameworks. Architecture, memory, deployment, and which one to pick."
+image: "/static/images/openhuman-vs-hermes-vs-openclaw/cover.png"
+tags: ["hermes-agent", "openclaw", "openhuman", "ai-agents", "framework-comparison", "self-hosted-ai", "open-source"]
+---
+
+**TL;DR:**
+- **Hermes** — self-improving agents with persistent memory, scheduled crons, and a multi-channel gateway. Best for personal AI, business intelligence, and multi-agent stacks.
+- **OpenClaw** — simplest self-hosted agent with markdown-based memory (`SOUL.md`). Best for single-purpose Telegram/Slack bots where simplicity beats features.
+- **OpenHuman** — human-in-the-loop agent with approval gates and audit trails. Best for agents that touch production systems where mistakes cost money.
+
+I've built production agents on all three. This comparison is what I've learned from deploying each one in real scenarios — not what the READMEs claim.
+
+---
+
+## Why these three
+
+In 2026, the open-source AI agent space has dozens of frameworks. AutoGen, CrewAI, LangGraph, Letta — all useful for specific things. But Hermes, OpenClaw, and OpenHuman occupy a distinct niche: **self-hosted agents that you actually own**. No cloud dependency, no vendor lock-in, no per-seat pricing.
+
+They share three properties that matter for production:
+
+1. **Self-hosted.** The agent runs on your infrastructure. Your data stays on your wire.
+2. **Model-agnostic.** Swap OpenAI for Anthropic, OpenRouter, or local weights without rewriting the agent.
+3. **Persistent memory.** The agent remembers across sessions. It compounds over time.
+
+What makes them different is how they handle identity, tool access, and the balance between autonomy and control.
+
+---
+
+## At a glance
+
+| | Hermes (Nous Research) | OpenClaw (Peter Steinberger) | OpenHuman |
+|---|---|---|---|
+| **License** | MIT | MIT | MIT |
+| **Primary metaphor** | Self-improving agent | Messaging-first agent | Human-in-the-loop agent |
+| **Memory model** | Hindsight (vector + episodic) | `SOUL.md` markdown file | Approval logs + audit trail |
+| **Channels** | Telegram, Slack, Discord, WhatsApp, Signal, CLI | Telegram, Slack, Discord, CLI | CLI, custom integrations |
+| **Model providers** | OpenAI, Anthropic, OpenRouter, Nous Portal, self-hosted | OpenAI, Anthropic, OpenRouter | OpenAI, Anthropic, any HTTP endpoint |
+| **Subagent spawning** | Yes | No | No |
+| **Scheduled crons** | Yes | No | No |
+| **Recommended minimum VPS** | 2GB RAM, 1 vCPU | 1GB RAM, 1 vCPU | 2GB RAM, 1 vCPU |
+| **Best for** | Multi-agent stacks, personal AI, business intelligence | Single-purpose bots, simple automations | Agents on production systems, approval workflows |
+
+---
+
+## Hermes Agent (Nous Research)
+
+Hermes is the framework I run 13 of my 14 agents on. It's built by [Nous Research](https://nousresearch.com/) and open-sourced under MIT.
+
+### Architecture
+
+Hermes follows a gateway → skills → memory pattern. A central gateway process handles incoming messages from any channel (Telegram, Slack, Discord, WhatsApp, Signal, or CLI). Skills are pluggable capabilities — tool calls, API integrations, file operations. Memory has two layers: recent context (in-memory, fast) and cross-session knowledge (Hindsight, a vector store).
+
+The key design decision: Hermes treats the agent as a **persistent entity** that lives across sessions, not a request-response function that spins up and dies. Your agent has a name, a personality (defined in `SOUL.md`), and memory that compounds over weeks.
+
+### Strengths
+
+- **Multi-channel gateway.** One agent instance serves Telegram, Slack, Discord, and more. No duplication.
+- **Subagent spawning.** A Hermes agent can spawn specialist subagents for parallel work. This is how I run 14 agents on one box — the Commander spawns Research, Coder, QA, and others as needed.
+- **Scheduled crons.** Built-in scheduler for recurring tasks — daily reports, periodic checks, maintenance work.
+- **Self-improving.** The agent refines its own skills from experience. Over time, it gets better at your specific workflows.
+- **Model-agnostic.** Switch between OpenAI, Anthropic, OpenRouter, or self-hosted weights with one config line.
+
+### Weaknesses
+
+- **Complexity.** More features means more configuration. A Hermes setup takes 30-60 minutes to get right.
+- **Resource usage.** The gateway, memory layer, and skill system consume more RAM than a simple bot. Plan for 2GB minimum.
+- **Documentation moves fast.** Hermes develops quickly, which means tutorials go stale. Always check the repo README first.
+
+### Best fit
+
+- Personal AI assistant that lives in Telegram and serves you daily
+- Business intelligence agent wired into Postgres, Stripe, GA4, and your CRM
+- Multi-agent orchestration where a commander delegates to specialists
+- Any scenario where the agent needs to improve over time and remember context across weeks
+
+I wrote a full [deployment walkthrough for Hermes on Hetzner](/blog/deploy-hermes-agent-on-hetzner) if you want to see the exact setup.
+
+---
+
+## OpenClaw (Peter Steinberger)
+
+OpenClaw is the simplest of the three. Built by [Peter Steinberger](https://steipete.com/), it follows a messaging-first philosophy: the agent lives in your chat app, remembers via a markdown file, and extends via plugins.
+
+### Architecture
+
+OpenClaw's core is a message handler that connects to Telegram, Slack, Discord, or CLI. The agent's identity and instructions live in `SOUL.md` — a plain markdown file you edit directly. Plugins extend functionality: file access, web search, database queries, custom tool calls.
+
+There's no complex orchestration layer, no subagent spawning, no cron scheduler. The simplicity is the feature.
+
+### Strengths
+
+- **Dead simple.** From `git clone` to working Telegram bot: 10 minutes. The mental model is "markdown file + chat app."
+- **`SOUL.md` is brilliant.** Defining agent identity in markdown makes it easy to version, review, and iterate. You can see exactly what your agent "knows" by reading one file.
+- **Low resource usage.** Runs comfortably on 1GB RAM. No memory layer, no vector store, no background processes.
+- **Plugin pipeline.** Extend with custom plugins without modifying the core framework.
+- **Great for learning.** If you've never built an agent before, OpenClaw is the best starting point.
+
+### Weaknesses
+
+- **Single-purpose.** No subagent spawning, no multi-agent coordination. One agent, one job.
+- **No scheduled crons.** You need an external scheduler (systemd timer, cron job) for recurring tasks.
+- **Memory is file-based.** `SOUL.md` works for identity and instructions, but it doesn't give you semantic recall across sessions. The agent remembers what's in the file, not what you talked about last Tuesday.
+- **Limited channel support.** Telegram, Slack, Discord, CLI. No WhatsApp, no Signal.
+
+### Best fit
+
+- A single-purpose Telegram bot with persistent identity
+- A personal assistant that handles one workflow (daily briefing, task triage, code review companion)
+- Learning how agents work before committing to a more complex framework
+- Situations where simplicity beats features — the agent needs to do one thing reliably
+
+The [Hermes vs OpenClaw decision](#which-one-should-you-pick) usually comes down to: do you need one agent or many? Do you need memory that compounds, or a simple bot that remembers its instructions?
+
+---
+
+## OpenHuman
+
+OpenHuman takes a different approach entirely. Where Hermes optimizes for autonomy and OpenClaw optimizes for simplicity, OpenHuman optimizes for **safety**.
+
+### Architecture
+
+OpenHuman is a human-in-the-loop agent framework. Every tool call, every external action, every modification to production systems goes through an approval gate by default. The agent proposes an action, a human reviews it, and either approves or rejects it. Every decision is logged in an audit trail.
+
+This sounds slow. It is. That's the point.
+
+### Strengths
+
+- **Approval gates.** The agent cannot act on production systems without explicit human approval. This is non-negotiable for agents that touch databases, deploy code, or manage finances.
+- **Audit trails.** Every action is logged with who approved it, when, and why. For compliance and debugging, this is invaluable.
+- **Policy enforcement.** Define what the agent can and cannot do via policy files. The agent cannot override these policies.
+- **Safe tool access.** Tool calls are sandboxed and validated before execution.
+
+### Weaknesses
+
+- **Slower.** Every action requires approval. For a personal AI assistant, this defeats the purpose.
+- **Less autonomous.** The whole point is that the agent doesn't act alone. If you want an agent that runs autonomously, OpenHuman is the wrong framework.
+- **Smaller community.** Fewer tutorials, fewer plugins, fewer examples in the wild.
+- **Higher overhead.** The approval and audit system consumes resources and adds complexity to deployment.
+
+### Best fit
+
+- Agent that deploys code to production (CI/CD copilot, code review agent)
+- Agent that manages financial transactions or billing
+- Agent that accesses sensitive customer data
+- Any scenario where a wrong action costs money, reputation, or compliance
+
+I use OpenHuman for exactly one agent in my stack: the deployment gatekeeper that reviews every production change before it goes live. For everything else, the overhead isn't worth it.
+
+---
+
+## Memory: how each framework persists state
+
+Memory is what separates a toy agent from one that compounds over time. Each framework handles it differently.
+
+**Hermes** uses Hindsight — a cloud memory layer that stores both recent context (fast, in-memory) and long-term knowledge (vector store with semantic recall). Your agent can remember what you discussed three weeks ago and retrieve it by meaning, not just keywords. This is the most powerful memory model of the three.
+
+**OpenClaw** uses `SOUL.md` — a markdown file that defines the agent's identity, instructions, and known context. It's simple, transparent, and version-controllable. But it's static: the agent remembers what you put in the file, not what happened in previous conversations.
+
+**OpenHuman** stores approval logs and audit trails. The "memory" is the record of what the agent did, what was approved, and what was rejected. This isn't conversational memory — it's operational memory for debugging and compliance.
+
+For most use cases, Hermes's memory model is the strongest. If you need the agent to learn and improve over time, Hindsight is the differentiator. If you just need a bot that follows instructions, OpenClaw's `SOUL.md` is simpler and sufficient.
+
+---
+
+## Cost and deployment footprint
+
+| | Hermes | OpenClaw | OpenHuman |
+|---|---|---|---|
+| Minimum RAM | 2GB | 1GB | 2GB |
+| Typical VPS | Hetzner CX22 ($4/mo) | Hostinger KVM 1 ($5/mo) | Hetzner CX22 ($4/mo) |
+| Disk usage | 500MB + memory DB | 50MB + SOUL.md | 200MB + audit logs |
+| Startup time | 5-10 seconds | 2-3 seconds | 5-8 seconds |
+| API cost (GPT-4o, 100 msgs/day) | ~$3-5/month | ~$3-5/month | ~$2-3/month (fewer autonomous calls) |
+
+The API cost is similar across all three because the LLM calls are the dominant expense, not the framework overhead. OpenHuman spends less on API calls because the human approval step reduces the number of autonomous actions.
+
+For the detailed VPS comparison with real benchmarks, read the [best VPS for self-hosted AI agents](/blog/best-vps-for-self-hosted-ai-agents-2026).
+
+---
+
+## Which one should you pick?
+
+The decision tree is straightforward:
+
+**Pick Hermes if:**
+- You want a personal AI that improves over time
+- You need the agent to serve multiple channels (Telegram + Slack + Discord)
+- You're building a multi-agent system where agents coordinate
+- You want scheduled crons for recurring work
+- You need semantic memory that compounds across weeks
+
+**Pick OpenClaw if:**
+- You want a single-purpose bot with a clear scope
+- Simplicity beats features for your use case
+- You're learning agents for the first time
+- You want to go from zero to working bot in 10 minutes
+- You don't need subagent spawning or cron scheduling
+
+**Pick OpenHuman if:**
+- The agent touches production systems where wrong actions cost money
+- You need explicit approval gates before every external action
+- Compliance requires audit trails of every agent decision
+- Safety is more important than speed
+
+**If you're unsure:** Start with OpenClaw to learn the concepts, then graduate to Hermes when you need more power. Use OpenHuman only when the stakes justify the overhead.
+
+---
+
+## What I run
+
+13 of my 14 agents run on Hermes. The 14th runs on OpenHuman and serves as a deployment gatekeeper. I used to run one agent on OpenClaw for a personal Telegram bot, but migrated it to Hermes when I needed cron scheduling and cross-session memory.
+
+The reason I default to Hermes: **compounding**. A Hermes agent that's been running for three months is significantly more useful than one that started yesterday. The memory layer, the self-improving skills, and the multi-channel gateway mean the agent gets better at my specific workflows over time. That compounding effect is the real value of self-hosted agents.
+
+For the full architecture behind running 14 agents on one box — the coordination, the credential pooling, the SQLite kanban — read [how I run 14 AI agents on a single Hetzner VPS](/blog/run-14-ai-agents-on-single-hetzner-vps).
+
+---
+
+## What to do next
+
+If you're ready to deploy, start with the [Hermes on Hetzner walkthrough](/blog/deploy-hermes-agent-on-hetzner) — the full setup from zero to production in under an hour. If you're still evaluating hosting, read the [VPS comparison](/blog/best-vps-for-self-hosted-ai-agents-2026) with real benchmarks across Hetzner, Hostinger, and DigitalOcean.
+
+For the complete picture of my stack, see the [AI-first dev stack](/workflow).
+
+---
+
+## Want me to build one for you?
+
+I design and ship production AI agents on Hermes and OpenClaw — self-hosted, model-agnostic, and tuned to how your business actually runs. Personal AI for founders. Business intelligence agents for teams. Ops agents in Telegram, Slack, or Discord.
+
+[See what I build →](/agents)
+
+Or skip ahead and book a free 20-minute discovery call:
+[cal.com/growthperclick/discovery-call](https://cal.com/growthperclick/discovery-call).
