@@ -55,6 +55,28 @@ function getTweetId(url: string) {
 // stops a transient X / syndication-API failure from breaking deploys.
 export const revalidate = 86_400;
 
+/**
+ * The X syndication API frequently returns `entities` with only a `media`
+ * key, omitting `hashtags`, `user_mentions`, `urls`, and `symbols`.
+ * react-tweet's enrichTweet() -> getEntities() -> addEntities() does
+ * `for (const entity of entities)` on each of those arrays, so a missing
+ * key throws "entities is not iterable" and the whole card renders nothing.
+ * Backfill the arrays so enrichTweet() always succeeds.
+ */
+function normalizeTweetEntities<T extends { entities?: unknown }>(tweet: T): T {
+  const e = (tweet.entities ?? {}) as Record<string, unknown>;
+  return {
+    ...tweet,
+    entities: {
+      hashtags: e.hashtags ?? [],
+      user_mentions: e.user_mentions ?? [],
+      urls: e.urls ?? [],
+      symbols: e.symbols ?? [],
+      ...(e.media ? { media: e.media } : {}),
+    },
+  };
+}
+
 async function safeGetTweet(id: string) {
   if (!id) return null;
   try {
@@ -63,7 +85,7 @@ async function safeGetTweet(id: string) {
     // user or missing id_str means react-tweet's enrichTweet() will throw
     // when it tries to render. Better to drop the card than fail the build.
     if (!tweet?.user || !tweet?.id_str) return null;
-    return tweet;
+    return normalizeTweetEntities(tweet);
   } catch (error) {
     // Log on the server, drop the tweet silently in the UI. We never want
     // a single deleted / protected / rate-limited tweet to fail the page.

@@ -110,11 +110,25 @@ function MediaBlock({ tweet }: { tweet: EnrichedTweet }) {
 
 export function MinimalTweetCard({ tweet, href }: MinimalTweetCardProps) {
   // enrichTweet() asserts on shape — if the X syndication API returns a
-  // partial payload it will throw at render time, which fails static
-  // prerender. Fail closed (render nothing) instead of failing the build.
+  // partial payload (commonly `entities` with only `media`, missing the
+  // hashtags/user_mentions/urls/symbols arrays) it throws "entities is not
+  // iterable" at render time, which fails static prerender. Backfill the
+  // expected arrays and fail closed (render nothing) if it still throws.
+  const entities = (tweet.entities ?? {}) as unknown as Record<string, unknown>;
+  const safeTweet = {
+    ...tweet,
+    entities: {
+      hashtags: entities.hashtags ?? [],
+      user_mentions: entities.user_mentions ?? [],
+      urls: entities.urls ?? [],
+      symbols: entities.symbols ?? [],
+      ...(entities.media ? { media: entities.media } : {}),
+    },
+  } as Tweet;
+
   let enriched: EnrichedTweet;
   try {
-    enriched = enrichTweet(tweet);
+    enriched = enrichTweet(safeTweet);
   } catch {
     return null;
   }
