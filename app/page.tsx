@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const posts = await getPublishedPosts(3);
+  const posts = await getPublishedPosts(6);
 
   const projectsJsonLd = {
     "@context": "https://schema.org",

@@ -129,27 +129,6 @@ Get build logs, shipping notes, and AI product breakdowns delivered to your inbo
     };
   }
 
-  if (pathname.startsWith("/blog/")) {
-    const title = titleFromPath(pathname);
-    return {
-      title: `${title} | Amit Kumar`,
-      description:
-        "A public blog post by Amit Kumar about AI systems, product building, and growth experiments.",
-      body: `# ${title}
-
-This is a public Amit Kumar blog article.
-
-For the canonical HTML article, visit [${pathname}](${pathname}). Agents can also request site index pages with \`Accept: text/markdown\`.
-
-## Related links
-
-- [Blog index](/blog)
-- [Home](/)
-- [Newsletter](/newsletter)
-`,
-    };
-  }
-
   if (pathname === "/agents") {
     return {
       title:
@@ -334,6 +313,14 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/api/")
   ) {
+    return NextResponse.next();
+  }
+
+  // Individual blog content (posts, tag pages) must serve the full HTML
+  // article — never a thin markdown stub. The stub was near-empty and
+  // undermined AEO for the exact pages we want AI engines to cite. The
+  // curated markdown variant is kept for the /blog index and marketing pages.
+  if (/^\/blog\/.+/.test(pathname)) {
     return NextResponse.next();
   }
 

@@ -13,7 +13,7 @@ export function BlogList({ posts }: BlogListProps) {
   return (
     <section className="flex flex-col gap-4">
       <Subheading>Writing</Subheading>
-      {posts.slice(0, 3).map((post, index) => (
+      {posts.slice(0, 6).map((post, index) => (
         <Link
           href={`/blog/${post.slug}`}
           key={index}

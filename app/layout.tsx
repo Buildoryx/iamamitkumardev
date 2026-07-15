@@ -202,6 +202,29 @@ export default function RootLayout({ children }) {
     inLanguage: "en-US",
   };
 
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
+    name: "Amit Kumar",
+    url: SITE_URL,
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/favicon.png`,
+      width: 512,
+      height: 512,
+    },
+    image: `${SITE_URL}/images/og-image.png`,
+    founder: { "@id": `${SITE_URL}/#person` },
+    sameAs: [
+      X_URL,
+      "https://github.com/ravenrepo",
+      "https://www.linkedin.com/in/growthperclick/",
+      SUBSTACK_URL,
+      MEDIUM_URL,
+    ],
+  };
+
   return (
     <html
       lang="en"
@@ -215,17 +238,19 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body className={cn("font-display bg-theme-bg")}>
-        <Script
-          id="person-jsonld"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
-          strategy="afterInteractive"
         />
-        <Script
-          id="website-jsonld"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-          strategy="afterInteractive"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
         />
         <Navbar />
         <main className="flex min-h-screen flex-col">

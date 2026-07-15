@@ -13,6 +13,7 @@ import {
   getPublishedPosts,
   getRelatedPosts,
   parseTags,
+  resolveCanonicalSlug,
   resolvePostSeo,
   stripLeadingH1,
   SITE_URL,
@@ -26,8 +27,14 @@ type PageProps = {
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const posts = await getPublishedPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  try {
+    const posts = await getPublishedPosts();
+    return posts.map((post) => ({ slug: post.slug }));
+  } catch {
+    // Never fail the build if the data source is briefly unavailable;
+    // pages still render on-demand via ISR (revalidate above).
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -40,7 +47,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const url = `${SITE_URL}/blog/${post.slug}`;
+  const url = `${SITE_URL}/blog/${resolveCanonicalSlug(post.slug)}`;
   const { title: seoTitle, description: articleDescription } =
     resolvePostSeo(post);
   const ogImage = post.image || post.coverImage || "/images/og-image.png";
@@ -84,8 +91,8 @@ export default async function BlogPostPage({ params }: PageProps) {
     Math.ceil(post.content.split(/\s+/).filter(Boolean).length / 225),
   );
   const postTags = parseTags(post.tags);
-  const related = await getRelatedPosts(post.slug, postTags, 3);
-  const pageUrl = `${SITE_URL}/blog/${post.slug}`;
+  const related = await getRelatedPosts(post.slug, postTags, 5);
+  const pageUrl = `${SITE_URL}/blog/${resolveCanonicalSlug(post.slug)}`;
   const { title: seoTitle, description: articleDescription } =
     resolvePostSeo(post);
   const ogImage =
@@ -116,7 +123,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     datePublished: post.publishedAt,
     dateModified: post.updatedAt || post.publishedAt,
     author: { "@id": `${SITE_URL}/#person` },
-    publisher: { "@id": `${SITE_URL}/#person` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": pageUrl,

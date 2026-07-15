@@ -39,6 +39,33 @@ export const AUTHOR = {
   twitter: "@growthperclick",
 } as const;
 
+/**
+ * Cross-canonical consolidation for near-duplicate posts.
+ * Keys are non-canonical slugs; values are the canonical slug they defer to.
+ *
+ * The non-canonical post stays live but sets its <link rel="canonical"> and
+ * og:url to the winner and is dropped from the sitemap, so Google consolidates
+ * ranking signals instead of treating the two as competing duplicates.
+ *
+ * Reversible: delete an entry to restore independent indexing. This is
+ * data-source agnostic (works whether posts come from Supabase or MDX).
+ */
+export const CANONICAL_OVERRIDES: Record<string, string> = {
+  // Near-duplicate of "how-to-build-enterprise-grade-production-ready-ai-agents".
+  "building-enterprise-grade-production-ready-ai-agents-my-practical-guide-to-deployment":
+    "how-to-build-enterprise-grade-production-ready-ai-agents",
+};
+
+/** Returns the canonical slug for a post (itself when no override exists). */
+export function resolveCanonicalSlug(slug: string): string {
+  return CANONICAL_OVERRIDES[slug] ?? slug;
+}
+
+/** True when a slug is a non-canonical duplicate that must stay out of the sitemap. */
+export function isNonCanonicalSlug(slug: string): boolean {
+  return Object.prototype.hasOwnProperty.call(CANONICAL_OVERRIDES, slug);
+}
+
 export function estimateReadingTime(content: string): number {
   const wordsPerMinute = 238;
   const wordCount = content.trim().split(/\s+/).length;

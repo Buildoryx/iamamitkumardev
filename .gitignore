@@ -41,6 +41,9 @@ pnpm-debug.log*
 # omx - opencode state
 .omx/
 
+# claude-flow - local agent tooling
+.claude-flow/
+
 # TypeScript
 *.tsbuildinfo
 tsconfig.tsbuildinfo

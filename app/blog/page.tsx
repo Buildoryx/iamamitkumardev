@@ -39,7 +39,7 @@ export default async function BlogPage() {
       "Technical writing on production AI agents, MCP tools, self-hosted automations, multi-agent workflows, product shipping, and growth experiments.",
     url: `${SITE_URL}/blog`,
     author: { "@id": `${SITE_URL}/#person` },
-    publisher: { "@id": `${SITE_URL}/#person` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
     blogPost: indexPosts.slice(0, 10).map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
