@@ -359,7 +359,9 @@ export async function getRelatedPosts(
   limit = 3
 ): Promise<Post[]> {
   const allPosts = await getPublishedPosts();
-  const others = allPosts.filter((post) => post.slug !== currentSlug);
+  const others = allPosts.filter(
+    (post) => post.slug !== currentSlug && !isNonCanonicalSlug(post.slug),
+  );
 
   if (tags.length === 0) {
     return others.slice(0, limit);

@@ -7,6 +7,7 @@ import { validateAndSanitizePostInput } from "@/lib/validation";
 import { sanitizeMarkdown } from "@/lib/security";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { withCsrfProtection } from "@/lib/csrf";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 async function handlePost(req: NextRequest) {
   const rateLimitResult = await rateLimitAsync(req, {
@@ -99,6 +100,7 @@ async function handlePost(req: NextRequest) {
     if (isPublished) {
       revalidatePath("/sitemap.xml");
       revalidatePath("/feed.xml");
+      void submitToIndexNow([`/blog/${slug}`, "/blog"]);
     }
 
     return NextResponse.json(mapDbToPost(newPost));

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Container from "@/components/container";
@@ -12,6 +12,7 @@ import {
   getPostBySlug,
   getPublishedPosts,
   getRelatedPosts,
+  isNonCanonicalSlug,
   parseTags,
   resolveCanonicalSlug,
   resolvePostSeo,
@@ -29,7 +30,9 @@ export const revalidate = 60;
 export async function generateStaticParams() {
   try {
     const posts = await getPublishedPosts();
-    return posts.map((post) => ({ slug: post.slug }));
+    return posts
+      .filter((post) => !isNonCanonicalSlug(post.slug))
+      .map((post) => ({ slug: post.slug }));
   } catch {
     // Never fail the build if the data source is briefly unavailable;
     // pages still render on-demand via ISR (revalidate above).
@@ -80,6 +83,14 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
+
+  // Non-canonical duplicate slugs permanently redirect to their canonical URL.
+  // Consolidates ranking signals and removes the duplicate from the index
+  // instead of serving a second indexable page.
+  if (isNonCanonicalSlug(slug)) {
+    permanentRedirect(`/blog/${resolveCanonicalSlug(slug)}`);
+  }
+
   const post = await getPostBySlug(slug);
 
   if (!post || post.status !== "published" || !post.publishedAt) {

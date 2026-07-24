@@ -8,6 +8,7 @@ import { sanitizeMarkdown } from "@/lib/security";
 import { getEnv } from "@/lib/env";
 import { verifyAgentRequest, statusForReason } from "@/lib/agent-hmac";
 import { logAgentBlogEvent } from "@/lib/agent-audit";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 export const dynamic = "force-dynamic";
 
@@ -148,6 +149,9 @@ export async function POST(req: NextRequest) {
     revalidatePath(`/blog/${slug}`);
     revalidatePath("/sitemap.xml");
     revalidatePath("/feed.xml");
+
+    // Agent-created posts publish live — ping IndexNow (Bing/Yandex → AI engines).
+    void submitToIndexNow([`/blog/${slug}`, "/blog"]);
 
     await logAgentBlogEvent({
       action: "create",

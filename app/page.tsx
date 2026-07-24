@@ -4,7 +4,7 @@ import { Header } from "@/components/header";
 import { Work } from "@/components/work";
 import { DottedSeparator } from "@/components/separator";
 import { Companies } from "@/components/companies";
-import { getPublishedPosts } from "@/lib/blog";
+import { getPublishedPosts, isNonCanonicalSlug } from "@/lib/blog";
 import { BlogList } from "@/components/blog/blog-list";
 import { WorkWithMe } from "@/components/work-with-me";
 import { VidoTask } from "@/components/vidotask";
@@ -24,7 +24,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const posts = await getPublishedPosts(6);
+  const posts = (await getPublishedPosts(8))
+    .filter((post) => !isNonCanonicalSlug(post.slug))
+    .slice(0, 6);
 
   const projectsJsonLd = {
     "@context": "https://schema.org",

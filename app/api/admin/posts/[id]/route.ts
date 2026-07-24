@@ -6,6 +6,7 @@ import { serializeTags, mapDbToPost } from "@/lib/blog";
 import { validateAndSanitizePostInput } from "@/lib/validation";
 import { sanitizeMarkdown } from "@/lib/security";
 import { withCsrfProtectionWithParams } from "@/lib/csrf";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 export async function GET(
   req: NextRequest,
@@ -128,6 +129,8 @@ async function handlePut(
     revalidatePath(`/blog/${slug}`);
     revalidatePath("/sitemap.xml");
     revalidatePath("/feed.xml");
+
+    if (isNowPublished) void submitToIndexNow([`/blog/${slug}`, "/blog"]);
 
     return NextResponse.json(mapDbToPost(updatedPost));
   } catch (error: unknown) {

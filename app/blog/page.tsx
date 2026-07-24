@@ -3,7 +3,7 @@ import Container from "@/components/container";
 import { DottedSeparator } from "@/components/separator";
 import { BlogIndex } from "@/components/blog/blog-index";
 import { NewsletterCTA } from "@/components/blog/newsletter-cta";
-import { getPublishedPosts, SITE_URL } from "@/lib/blog";
+import { getPublishedPosts, isNonCanonicalSlug, SITE_URL } from "@/lib/blog";
 
 export const revalidate = 60;
 
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default async function BlogPage() {
   const posts = await getPublishedPosts();
   const indexPosts = posts
-    .filter((post) => Boolean(post.publishedAt))
+    .filter((post) => Boolean(post.publishedAt) && !isNonCanonicalSlug(post.slug))
     .map((post) => ({
       slug: post.slug,
       title: post.title,

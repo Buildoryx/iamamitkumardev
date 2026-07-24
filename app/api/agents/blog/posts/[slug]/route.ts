@@ -7,6 +7,7 @@ import { validateAndSanitizePostInput } from "@/lib/validation";
 import { sanitizeMarkdown } from "@/lib/security";
 import { verifyAgentRequest, statusForReason } from "@/lib/agent-hmac";
 import { logAgentBlogEvent } from "@/lib/agent-audit";
+import { submitToIndexNow } from "@/lib/indexnow";
 
 export const dynamic = "force-dynamic";
 
@@ -190,6 +191,8 @@ export async function PUT(
     if (slug !== routeSlug) revalidatePath(`/blog/${slug}`);
     revalidatePath("/sitemap.xml");
     revalidatePath("/feed.xml");
+
+    if (isPublished) void submitToIndexNow([`/blog/${slug}`, "/blog"]);
 
     await logAgentBlogEvent({
       action: "update",
