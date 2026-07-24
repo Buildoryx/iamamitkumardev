@@ -222,6 +222,12 @@ export default function RootLayout({ children }) {
       "https://www.linkedin.com/in/growthperclick/",
       SUBSTACK_URL,
       MEDIUM_URL,
+      // Owned properties — ties the studio + products to this person/brand entity
+      "https://iamagentman.com",
+      "https://launchsuite.tech",
+      "https://invobill.xyz",
+      "https://vidotask.com",
+      "https://sprintlabs.tech",
     ],
   };
 
