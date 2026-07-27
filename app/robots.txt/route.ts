@@ -37,10 +37,25 @@ export async function GET() {
     "PetalBot",
   ];
 
+  // Paths that must never be crawled by anyone.
+  //
+  // These have to be repeated inside EVERY named user-agent group. robots.txt
+  // is not additive: a crawler obeys only the single most-specific group that
+  // matches it and ignores `User-Agent: *` entirely. Previously the named
+  // Googlebot / Bingbot / AI-crawler groups contained only `Allow: /`, which
+  // meant /admin and the auth endpoints were crawlable by exactly the bots we
+  // care about most.
+  const disallowedPaths = ["/admin", "/api/admin", "/api/auth"];
+
+  const disallowBlock = disallowedPaths
+    .map((path) => `Disallow: ${path}`)
+    .join("\n");
+
   const aiCrawlerBlocks = aiCrawlers
     .map(
       (bot) => `User-Agent: ${bot}
 Allow: /
+${disallowBlock}
 `,
     )
     .join("\n");
@@ -58,25 +73,19 @@ Disallow: /
 
 User-Agent: *
 Allow: /
-Allow: /agents
-Allow: /blog
-Allow: /workflow
-Allow: /tools
-Allow: /projects/invobill
-Disallow: /admin
-Disallow: /api/admin
-Disallow: /api/auth
+${disallowBlock}
 
 User-Agent: Googlebot
 Allow: /
+${disallowBlock}
 
 User-Agent: Bingbot
 Allow: /
+${disallowBlock}
 
 ${aiCrawlerBlocks}
 ${throttledCrawlerBlocks}
 Sitemap: ${SITE_URL}/sitemap.xml
-Host: ${SITE_URL}
 
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 `;

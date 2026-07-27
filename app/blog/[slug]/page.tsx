@@ -24,6 +24,20 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
+/**
+ * The article shell already renders the post title as the page's only H1.
+ * Post bodies authored via the admin/agent editors sometimes use `#` for
+ * section headings, which produced 8 H1s on a single published post. Demote
+ * any body-level H1 to H2.
+ *
+ * This runs on the parsed AST rather than as a regex over the raw markdown,
+ * so a `#` inside a fenced code block — shell comments, for instance — is
+ * left untouched.
+ */
+const markdownComponents = {
+  h1: ({ node, ...props }) => <h2 {...props} />,
+};
+
 /** Keep post pages fresh when agents/admin publish via revalidatePath. */
 export const revalidate = 60;
 
@@ -56,7 +70,11 @@ export async function generateMetadata({
   const ogImage = post.image || post.coverImage || "/images/og-image.png";
 
   return {
-    title: seoTitle,
+    // `absolute` opts out of the root layout's "%s | Amit Kumar" template.
+    // That suffix added 13 characters to every post title, pushing all of
+    // them past Google's ~60-character display limit and getting the
+    // meaningful end of the headline truncated in results.
+    title: { absolute: seoTitle },
     description: articleDescription,
     alternates: { canonical: url },
     openGraph: {
@@ -174,7 +192,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           readingTime: { text: `${readingTime} min read` },
         }}
       >
-        <Markdown remarkPlugins={[remarkGfm]}>{bodyMarkdown}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+          {bodyMarkdown}
+        </Markdown>
       </BlogArticleShell>
 
       <Container>

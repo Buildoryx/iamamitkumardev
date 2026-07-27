@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/sponsor",
   },
+  // Thin utility page (236 words) with no search demand. Keeping it out of
+  // the index avoids diluting site-level quality signals; `follow` is left on
+  // so outbound link equity still flows.
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title: "Sponsor — Partner With Me for Founder-Focused Collabs",
     description:
@@ -33,6 +40,9 @@ export default async function SponsorsPage() {
   return (
     <>
       <Container className="min-h-screen">
+        <h1 className="sr-only">
+          Sponsor — Partner With Amit Kumar on Founder-Focused Collaborations
+        </h1>
         <div className="text-foreground pt-4 text-base">
           I share build-in-public lessons across my{" "}
           <LinkPreview url="https://substack.com/@growthperclick">

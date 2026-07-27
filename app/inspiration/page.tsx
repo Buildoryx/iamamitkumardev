@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/inspiration",
   },
+  // Thin utility page (199 words, flagged by crawl audit) with no search
+  // demand. Noindexed to avoid diluting site-level quality signals.
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title: "Inspiration — People & Products That Shape My Work",
     description:
@@ -267,6 +273,9 @@ export default async function InspirationPage() {
   return (
     <>
       <Container className="min-h-screen">
+        <h1 className="sr-only">
+          Inspiration — People and Products That Shape Amit Kumar&apos;s Work
+        </h1>
         <p className="text-foreground pt-4 text-base">
           A running list of people, tools, and products that influence how I
           build as an indie hacker.

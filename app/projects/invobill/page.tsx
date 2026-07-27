@@ -8,7 +8,7 @@ import { SITE_URL } from "@/lib/site";
 const PROJECT_URL = `${SITE_URL}/projects/invobill`;
 const LIVE_URL = "https://invobill.xyz";
 const DESCRIPTION =
-  "InvoBill is a live business management platform for Indian SMBs with inventory, GST billing, accounting, attendance, CRM, lead management, and financial reporting in one system.";
+  "InvoBill is a business management platform for Indian SMBs: inventory, GST billing, accounting, attendance, CRM, and financial reporting in one system.";
 
 const modules = [
   {
@@ -45,8 +45,7 @@ const modules = [
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "InvoBill — Inventory, GST Billing & Accounting Platform for Indian SMBs | Amit Kumar",
+    absolute: "InvoBill — GST Billing & Inventory Platform for Indian SMBs",
   },
   description: DESCRIPTION,
   keywords: [

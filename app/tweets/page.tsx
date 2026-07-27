@@ -106,6 +106,9 @@ export default async function TweetsPage() {
   return (
     <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
       <Container>
+        <h1 className="sr-only">
+          Tweets — Build-in-Public Posts and Updates by Amit Kumar
+        </h1>
         <Subheading>I post on twitter, you know.</Subheading>
         <p className="text-foreground pt-4 text-base text-balance">
           Most posts are build-in-public updates: what I shipped, what failed,

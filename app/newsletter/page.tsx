@@ -101,7 +101,7 @@ export default function NewsletterPage() {
 
         <div className="grid gap-8 md:grid-cols-2">
           <div>
-            <h3 className="mb-2 font-medium">What you'll get</h3>
+            <h2 className="mb-2 font-medium">What you'll get</h2>
             <ul className="space-y-2 text-neutral-600 dark:text-neutral-400">
               <li>✓ Real builds with code examples</li>
               <li>✓ Mistakes I made (so you don't)</li>
@@ -110,7 +110,7 @@ export default function NewsletterPage() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-2 font-medium">Join 200+ indie hackers</h3>
+            <h2 className="mb-2 font-medium">Join 200+ indie hackers</h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               I respect your inbox. No spam, no fluff, no "buy my course"
               emails. Just real insights from someone building in public.

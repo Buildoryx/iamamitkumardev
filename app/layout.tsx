@@ -43,11 +43,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default:
-      "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
+      "Amit Kumar — Production AI Agents & MCP Tools",
     template: "%s | Amit Kumar",
   },
   description:
-    "I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams using Hermes, OpenClaw, Claude, OpenAI, Supabase, and Next.js.",
+    "I build production AI agents, MCP tools, and self-hosted automations for founders and teams — using Hermes, OpenClaw, Claude, Supabase, and Next.js.",
   keywords: [
     "Amit Kumar",
     "iamamitkumar",
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Amit Kumar", url: SITE_URL }],
   creator: "Amit Kumar",
   openGraph: {
-    title: "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
+    title: "Amit Kumar — Production AI Agents & MCP Tools",
     description:
       "Production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams.",
     url: SITE_URL,
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
+    title: "Amit Kumar — Production AI Agents & MCP Tools",
     description:
       "Production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams.",
     creator: "@growthperclick",

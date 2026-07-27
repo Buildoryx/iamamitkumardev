@@ -36,10 +36,9 @@ import {
   IconNetwork,
 } from "@tabler/icons-react";
 
-const TITLE =
-  "AI-First Dev Stack — Hermes, OpenClaw, OpenHuman, Hetzner & Hostinger | Workflow";
+const TITLE = "AI Dev Stack — Hermes, OpenClaw & Hetzner";
 const DESCRIPTION =
-  "The full stack I use to ship production AI agents: Hermes (Nous Research), OpenClaw, and OpenHuman frameworks; self-hosted on Hetzner, Hostinger, and DigitalOcean; with Tailscale, Cloudflare, Supabase, Postgres, and the AI code assistants I rely on every day.";
+  "The stack I use to ship production AI agents: Hermes, OpenClaw and OpenHuman, self-hosted on Hetzner, Hostinger, or DigitalOcean.";
 
 export const metadata: Metadata = {
   title: TITLE,

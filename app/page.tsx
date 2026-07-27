@@ -13,11 +13,10 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "Amit Kumar | Production AI Agents, MCP Tools & Automation Systems",
+    absolute: "Amit Kumar — Production AI Agents & MCP Tools",
   },
   description:
-    "I build production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams using Hermes, OpenClaw, Claude, OpenAI, Supabase, and Next.js.",
+    "I build production AI agents, MCP tools, and self-hosted automations for founders and teams — using Hermes, OpenClaw, Claude, Supabase, and Next.js.",
   alternates: {
     canonical: "/",
   },

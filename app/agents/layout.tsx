@@ -5,10 +5,9 @@ import { SITE_URL } from "@/lib/site";
 
 const AGENTS_PAGE_URL = `${SITE_URL}/agents`;
 
-const TITLE =
-  "Production AI Agent Development Services — Hermes & OpenClaw | Amit Kumar";
+const TITLE = "Production AI Agent Development — Hermes & OpenClaw";
 const DESCRIPTION =
-  "Production AI agents built on Hermes (Nous Research) and OpenClaw — self-hosted, model-agnostic, tuned to your business. Personal AI for founders, business intelligence agents for teams, ops agents in Telegram, Slack, Discord.";
+  "Production AI agents built on Hermes and OpenClaw — self-hosted, model-agnostic, tuned to your business. Ops agents in Telegram, Slack, Discord.";
 
 const KEYWORDS = [
   "Hermes agent",
