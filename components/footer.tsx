@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { IconBrandMedium, IconBrandX, IconMail } from "@tabler/icons-react";
 import { MEDIUM_URL, SUBSTACK_URL, X_URL } from "@/lib/site";
 import Container from "./container";
@@ -21,6 +22,18 @@ const socialLinks = [
     href: MEDIUM_URL,
     icon: IconBrandMedium,
   },
+];
+
+/**
+ * Secondary destinations, demoted here from primary navigation. They stay
+ * internally linked and crawlable (all are `follow`), they just no longer
+ * compete for attention with the pages that matter.
+ */
+const secondaryLinks = [
+  { label: "Tweets", href: "/tweets" },
+  { label: "Newsletter", href: "/newsletter" },
+  { label: "Inspiration", href: "/inspiration" },
+  { label: "Sponsor", href: "/sponsor" },
 ];
 
 export const Footer = () => {
@@ -46,6 +59,20 @@ export const Footer = () => {
             distribution.
           </p>
         </div>
+        <nav
+          aria-label="More pages"
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm"
+        >
+          {secondaryLinks.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className="text-foreground/50 hover:text-primary transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
         <nav
           aria-label="Amit Kumar social links"
           className="flex flex-wrap items-center justify-center gap-2"

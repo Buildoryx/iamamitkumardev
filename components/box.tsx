@@ -13,7 +13,11 @@ export const Box = ({
   return (
     <motion.div
       className={cn(
-        "relative flex aspect-square size-8 items-center justify-center rounded-sm bg-linear-to-b from-blue-400 to-blue-600 align-middle shadow-lg ring-1 ring-white/20 ring-offset-2 ring-offset-blue-500 ring-inset",
+        // Flattened: previously carried shadow-lg + ring-1 + ring-offset-2 +
+        // ring-inset, which drew a visible second edge around every icon and
+        // read as a box inside a box — repeated ~15 times down the homepage.
+        // Colour still comes from call sites via className.
+        "relative flex aspect-square size-7 items-center justify-center rounded-md bg-linear-to-b from-blue-400 to-blue-600 align-middle",
         className,
       )}
     >

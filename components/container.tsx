@@ -11,7 +11,11 @@ export default function Container({
   return (
     <div
       className={cn(
-        "mx-auto w-full min-w-0 max-w-2xl px-4 sm:px-5",
+        // Was max-w-2xl (672px), which rendered as a 47%-wide strip on a
+        // 1440px viewport with ~384px of dead margin either side — a large
+        // part of why the site read as "boxed". 768px keeps line length in
+        // comfortable reading range while filling more of the viewport.
+        "mx-auto w-full min-w-0 max-w-3xl px-4 sm:px-6",
         className,
       )}
       {...rest}

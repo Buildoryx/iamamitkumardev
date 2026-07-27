@@ -13,17 +13,26 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/**
+ * Primary navigation is deliberately short.
+ *
+ * It previously carried nine equal-weight links that wrapped to two or three
+ * lines on mobile, which gave the reader no hierarchy and gave no single link
+ * emphasis. Two of those nine (/inspiration, /sponsor) are now `noindex` thin
+ * pages, so promoting them in primary nav was actively contradictory.
+ *
+ * Tweets, Newsletter, Inspiration, and Sponsor moved to the footer — still
+ * linked and crawlable, just no longer competing with the destinations that
+ * matter. `/agents` is the commercial page, so it gets the only CTA styling.
+ */
 const links = [
   { title: "Home", href: "/" },
-  { title: "Agents", href: "/agents" },
-  { title: "Tools", href: "/tools" },
-  { title: "Tweets", href: "/tweets" },
-  { title: "Inspiration", href: "/inspiration" },
-  { title: "Workflow", href: "/workflow" },
   { title: "Blog", href: "/blog" },
-  { title: "Newsletter", href: "/newsletter" },
-  { title: "Sponsor", href: "/sponsor" },
+  { title: "Tools", href: "/tools" },
+  { title: "Workflow", href: "/workflow" },
 ];
+
+const ctaLink = { title: "Hire me", href: "/agents" };
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -55,30 +64,45 @@ export const Navbar = () => {
           </span>
         </div>
       </div>
-      <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm md:gap-x-4 md:text-base">
-        {links.map((link) => {
-          const active = isActivePath(pathname, link.href);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "group relative transition-colors",
-                active
-                  ? "text-primary"
-                  : "text-foreground/70 hover:text-primary",
-              )}
-            >
-              {link.title}
-              <DottedUnderline
+      <div className="flex w-full min-w-0 items-center justify-between gap-3 text-sm md:gap-4 md:text-base">
+        <div className="flex min-w-0 items-center gap-x-4 md:gap-x-5">
+          {links.map((link) => {
+            const active = isActivePath(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
                 className={cn(
-                  "mask-x-from-90% transition-opacity duration-300",
-                  active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                  "group relative shrink-0 transition-colors",
+                  active
+                    ? "text-primary"
+                    : "text-foreground/70 hover:text-primary",
                 )}
-              />
-            </Link>
-          );
-        })}
+              >
+                {link.title}
+                <DottedUnderline
+                  className={cn(
+                    "mask-x-from-90% transition-opacity duration-300",
+                    active
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100",
+                  )}
+                />
+              </Link>
+            );
+          })}
+        </div>
+        <Link
+          href={ctaLink.href}
+          className={cn(
+            "shrink-0 rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+            isActivePath(pathname, ctaLink.href)
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-foreground/80 hover:border-primary hover:text-primary",
+          )}
+        >
+          {ctaLink.title}
+        </Link>
       </div>
     </nav>
   );

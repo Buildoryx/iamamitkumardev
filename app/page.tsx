@@ -81,21 +81,32 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectsJsonLd) }}
       />
-      <Container>
+      <Container className="pb-20">
         <Header />
-        <DottedSeparator className="my-10" />
-        <AiAgentsStartHere />
-        <DottedSeparator className="my-10" />
-        <Work />
-        <DottedSeparator className="my-10" />
-        <VidoTask />
-        <DottedSeparator className="my-10" />
+
+        {/*
+          Hierarchy comes from spacing, not rules.
+          Seven identical `DottedSeparator my-10` calls used to sit between
+          every section, which gave eight blocks the same visual weight and
+          made the page read as a stack of boxes. Now: ~64px between related
+          sections, ~96px at a real topic boundary, and the dotted rule kept
+          for only the two genuine shifts in subject.
+        */}
+        <div className="mt-14 flex flex-col gap-16">
+          <AiAgentsStartHere />
+          <Work />
+          <VidoTask />
+        </div>
+
+        <DottedSeparator className="mt-24 mb-16" />
         <Companies />
-        <DottedSeparator className="my-10" />
-        <WorkWithMe />
-        <DottedSeparator className="my-10" />
+
+        <div className="mt-24 flex flex-col gap-16">
+          <WorkWithMe />
+        </div>
+
+        <DottedSeparator className="mt-24 mb-16" />
         <BlogList posts={posts} />
-        <DottedSeparator className="my-10" />
       </Container>
     </>
   );

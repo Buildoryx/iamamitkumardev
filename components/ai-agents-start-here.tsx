@@ -44,17 +44,18 @@ export function AiAgentsStartHere() {
   return (
     <section>
       <Subheading>Start here for AI agents</Subheading>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {/*
+        Previously a 2x3 grid of bordered, rounded, hover-filled cards — the
+        most literally boxed element on the page. Now borderless: the title
+        carries the link affordance and spacing does the separating.
+      */}
+      <div className="mt-5 grid gap-x-10 gap-y-6 sm:grid-cols-2">
         {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="group rounded-lg border border-neutral-200/70 p-4 transition-colors hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/40"
-          >
-            <h2 className="text-foreground group-hover:text-primary text-sm font-medium">
+          <Link key={link.href} href={link.href} className="group block">
+            <h2 className="text-foreground group-hover:text-primary font-medium transition-colors">
               {link.title}
             </h2>
-            <p className="text-foreground/70 mt-2 text-sm leading-relaxed">
+            <p className="text-foreground/60 mt-1 text-sm leading-relaxed">
               {link.description}
             </p>
           </Link>

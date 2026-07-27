@@ -3,7 +3,12 @@ import Container from "@/components/container";
 import { DottedSeparator } from "@/components/separator";
 import { BlogIndex } from "@/components/blog/blog-index";
 import { NewsletterCTA } from "@/components/blog/newsletter-cta";
-import { getPublishedPosts, isNonCanonicalSlug, SITE_URL } from "@/lib/blog";
+import {
+  getPublishedPosts,
+  isNonCanonicalSlug,
+  parseTags,
+  SITE_URL,
+} from "@/lib/blog";
 
 export const revalidate = 60;
 
@@ -28,6 +33,8 @@ export default async function BlogPage() {
       title: post.title,
       publishedAt: post.publishedAt as string,
       summary: post.excerpt || post.summary || "",
+      // Needed by BlogIndex to group posts into topic clusters.
+      tags: parseTags(post.tags),
     }));
 
   const blogJsonLd = {
