@@ -164,6 +164,18 @@ export default async function BlogPostPage({ params }: PageProps) {
     image: [ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`],
   };
 
+  // Speakable schema — tells voice assistants (Google Assistant, Siri) which
+  // text to read aloud when this page is the answer to a voice query.
+  const speakableJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": pageUrl,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".prose > p:first-of-type"],
+    },
+  };
+
   return (
     <>
       <script
@@ -174,14 +186,37 @@ export default async function BlogPostPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd) }}
+      />
 
       <Container className="pt-4">
-        <Link
-          href="/blog"
-          className="text-muted-foreground text-sm hover:underline"
-        >
-          ← Back to blog
-        </Link>
+        {/* Visible breadcrumb navigation — reinforces site hierarchy for
+            both users and crawlers. Complements the BreadcrumbList JSON-LD
+            above by giving crawlers a <nav> element to parse. */}
+        <nav aria-label="Breadcrumb" className="text-muted-foreground mb-2 text-sm">
+          <ol className="flex items-center gap-1.5" itemScope itemType="https://schema.org/BreadcrumbList">
+            <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+              <Link href="/" itemProp="item" className="hover:underline">
+                <span itemProp="name">Home</span>
+              </Link>
+              <meta itemProp="position" content="1" />
+            </li>
+            <li aria-hidden className="text-foreground/30">/</li>
+            <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+              <Link href="/blog" itemProp="item" className="hover:underline">
+                <span itemProp="name">Blog</span>
+              </Link>
+              <meta itemProp="position" content="2" />
+            </li>
+            <li aria-hidden className="text-foreground/30">/</li>
+            <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+              <span itemProp="name" className="text-foreground/70">{post.title}</span>
+              <meta itemProp="position" content="3" />
+            </li>
+          </ol>
+        </nav>
       </Container>
 
       <BlogArticleShell
@@ -201,24 +236,56 @@ export default async function BlogPostPage({ params }: PageProps) {
         <ClapButton slug={post.slug} />
         <DottedSeparator className="my-8" />
         {related.length > 0 && (
-          <div>
+          <section>
             <p className="text-foreground mb-4 text-sm font-semibold">
-              More writing
+              More reading
             </p>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {related.map((item) => (
                 <Link
                   key={item.slug}
                   href={`/blog/${item.slug}`}
-                  className="text-muted-foreground hover:text-foreground block text-sm transition-colors"
+                  className="group block"
                 >
-                  {item.title}
+                  <p className="text-foreground group-hover:text-primary text-sm font-medium transition-colors">
+                    {item.title}
+                  </p>
+                  {item.excerpt || item.summary ? (
+                    <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+                      {(item.excerpt || item.summary || "").slice(0, 120)}
+                      {(item.excerpt || item.summary || "").length > 120 ? "…" : ""}
+                    </p>
+                  ) : null}
                 </Link>
               ))}
             </div>
             <DottedSeparator className="my-8" />
+          </section>
+        )}
+
+        {/* Contextual CTA — only show on AI-agent-related posts where
+            the reader is most likely to need production help. */}
+        {postTags.some((t) =>
+          ["hermes-agent", "openclaw", "ai-agents", "self-hosted-ai", "vps", "hetzner"].includes(t)
+        ) && (
+          <div className="rounded-lg border border-border/50 bg-card/30 p-5">
+            <p className="text-foreground text-sm font-medium">
+              Building AI agents for your business?
+            </p>
+            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+              I design and ship production AI agents on Hermes and OpenClaw — self-hosted,
+              model-agnostic, and tuned to how your team actually works.
+            </p>
+            <Link
+              href="/agents"
+              className="text-primary mt-3 inline-block text-xs font-medium hover:underline"
+            >
+              See what I build →
+            </Link>
           </div>
         )}
+
+        <DottedSeparator className="my-8" />
         <NewsletterCTA />
         <DottedSeparator className="my-8" />
       </Container>

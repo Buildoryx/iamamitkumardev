@@ -7,7 +7,7 @@ tags: ["hermes-agent", "ai-agents", "vps-deployment", "self-hosting", "tailscale
 
 Most "deploy AI agents to a VPS" tutorials are wrappers around a chat box. You SSH in as root, `pip install` something, run a script in a `tmux` session, and call it production.
 
-That is not production. That is a coin-flip on whether your agent dies the next time the VPS reboots, gets rate-limited, or somebody scans port 22.
+That is not production. That is a coin-flip on whether your agent dies the next time the VPS reboots, gets rate-limited, or somebody scans port 22. I [compared the VPS providers](/blog/best-vps-for-self-hosted-ai-agents-2026) that actually work for this workload and [wrote about the testing discipline](/blog/how-to-test-ai-agents-before-production) that catches failures before customers do.
 
 I run **a multi-agent stack** on a single **4GB VPS** for under **$10/month**, with multi-day uptime, zero public ports, and a credential pool that auto-rotates when one provider rate limits me. This post is the exact playbook — the 9 phases I went through, the configs that broke, and the ones that actually held.
 

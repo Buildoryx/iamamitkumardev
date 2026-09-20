@@ -8,7 +8,7 @@ tags: ["vps", "hosting-comparison", "hetzner", "hostinger", "digitalocean", "sel
 
 I tested three VPS providers for running self-hosted AI agents — Hetzner, Hostinger, and DigitalOcean — for 30 days each. Same agent, same config, same workload. Different results.
 
-Hetzner for production. Hostinger for budget single-agent. DigitalOcean for clients who already use it. That's the verdict. Here's the data behind it.
+Hetzner for production. Hostinger for budget single-agent. DigitalOcean for clients who already use it. That's the verdict. Here's the data behind it. If you're just getting started, read my [step-by-step Hermes deployment guide](/blog/deploy-hermes-agent-on-hetzner) first — it covers the full setup from zero to production on Hetzner.
 
 ---
 
@@ -180,7 +180,7 @@ Snapshot pricing adds up. $0.06/GB/month for snapshots — not terrible, but Het
 
 ## What about AWS, GCP, and Azure?
 
-For sub-100-agent self-hosted setups, the big three cloud providers are rarely the right call. The pricing models are designed for variable workloads with auto-scaling, not for a VPS that runs 24/7 at steady state.
+For sub-100-agent self-hosted setups, the big three cloud providers are rarely the right call. The pricing models are designed for variable workloads with auto-scaling, not for a VPS that runs 24/7 at steady state. I [explored self-hosting vs APIs in depth](/blog/self-hosting-ai-agents-why-i-moved-off-apis) — the real cost math and when renting still wins.
 
 A t3.medium on AWS costs ~$30/month. An e2-standard-2 on GCP costs ~$40/month. Both give you 2 vCPU and 4GB RAM — the same spec Hetzner sells for $4.30.
 

@@ -77,3 +77,8 @@ seoplan.md
 seoplan2.md
 supabase/migrations/20260424000001_seo_flywheel_schema.sql
 vercel.json
+# OMC operational state (session artifacts, plans, logs)
+.omc/
+
+# Local SEO audit / implementation notes (not for publication)
+JEV_*.md

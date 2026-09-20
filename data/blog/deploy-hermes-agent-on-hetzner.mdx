@@ -18,7 +18,7 @@ This is the walkthrough I wish I had — the exact steps, the configs that worke
 
 Hetzner's CX22 line gives you 2 vCPUs, 4GB RAM, and 40GB SSD for around €4/month. That's enough for a Hermes agent plus a small Postgres instance if you want structured memory. The data centers are in Finland and Germany, which matters if you care about EU data residency.
 
-I picked Hetzner over DigitalOcean and AWS because the price-to-performance ratio is unbeatable for small agent workloads, and their networking is predictable. No surprise egress charges, no tiered pricing that jumps when your agent starts calling APIs frequently.
+I picked Hetzner over DigitalOcean and AWS because the price-to-performance ratio is unbeatable for small agent workloads, and their networking is predictable. No surprise egress charges, no tiered pricing that jumps when your agent starts calling APIs frequently. I [compared all three providers in detail](/blog/best-vps-for-self-hosted-ai-agents-2026) — Hetzner won on uptime, price, and EU residency.
 
 If you're in India, the latency from Hetzner to Indian Telegram users is acceptable — around 120-150ms for API calls, which doesn't matter for an async agent that takes 2-5 seconds to respond anyway.
 
@@ -177,7 +177,7 @@ Better yet, use systemd environment files so the keys never sit in plaintext on 
 
 ## Step 6: Write the SOUL.md
 
-This is the identity file that gives your agent its personality and constraints. Without it, Hermes is a generic chatbot. With it, it's a specialist.
+This is the identity file that gives your agent its personality and constraints. Without it, Hermes is a generic chatbot. With it, it's a specialist. If you're deciding between frameworks, read my [OpenHuman vs Hermes vs OpenClaw comparison](/blog/openhuman-vs-hermes-vs-openclaw) — each handles identity differently.
 
 Create `SOUL.md` in the Hermes directory:
 
@@ -270,13 +270,13 @@ Hermes stores memory in SQLite by default. The database file lives in `./data/me
 
 The systemd unit above sets `ReadWritePaths=/home/hermes/hermes-agent/data`, so the memory directory is writable. If you're using Docker instead, mount a volume for the data directory.
 
-For cross-session vector memory (semantic recall), Hermes pairs with Hindsight — a cloud memory layer that stores embeddings separately. If you set up Hindsight, the agent can recall context from weeks ago, not just the current session. The setup instructions are in the Hermes repo.
+For cross-session vector memory (semantic recall), Hermes pairs with Hindsight — a cloud memory layer that stores embeddings separately. If you set up Hindsight, the agent can recall context from weeks ago, not just the current session. The setup instructions are in the Hermes repo. I [explored memory failures in depth](/blog/beyond-context-window-ai-agent-memory-production-failures) — the things that break when your agent's context window isn't enough.
 
 ---
 
 ## Monitoring and observability
 
-Once the agent is running, you need to know when something goes wrong before the user does. Three things to set up immediately:
+Once the agent is running, you need to know when something goes wrong before the user does. Production agents fail silently — I [wrote about the testing discipline](/blog/how-to-test-ai-agents-before-production) that catches these before customers do. Three things to set up immediately:
 
 **Systemd journal logging.** Hermes logs to stdout, which systemd captures. View the last 100 lines:
 

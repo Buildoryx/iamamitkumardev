@@ -8,7 +8,7 @@ tags: ["hermes-agent", "multi-agent", "hetzner", "self-hosted-ai", "agent-orches
 
 I run 14 specialist AI agents on a single Hetzner VPS. They share one box, one SQLite database, one credential pool, and one Discord gateway. Total cost: under $10/month.
 
-This post is the architecture behind that setup — the coordination system, the identity pattern, the credential rotation, and the five things that broke before I got it right. If you've got one agent running and want to scale to a multi-agent stack without spinning up multiple servers, this is the post.
+This post is the architecture behind that setup — the coordination system, the identity pattern, the credential rotation, and the five things that broke before I got it right. If you've got one agent running and want to scale to a multi-agent stack without spinning up multiple servers, this is the post. If you haven't deployed your first agent yet, start with my [Hermes on Hetzner walkthrough](/blog/deploy-hermes-agent-on-hetzner) — it covers the single-agent setup this architecture builds on.
 
 ---
 
@@ -288,7 +288,7 @@ This is non-negotiable for production. An agent with a public-facing dashboard i
 
 ## What broke at scale
 
-Five things went wrong before the architecture stabilized:
+Five things went wrong before the architecture stabilized. I [wrote about the testing discipline](/blog/how-to-test-ai-agents-before-production) that catches these failures before customers notice. Here's what actually broke:
 
 **SQLite WAL contention.** When three agents try to write to the kanban simultaneously, SQLite's WAL (Write-Ahead Logging) mode handles it — but only if all connections use WAL mode. One agent connecting in journal mode caused lock timeouts. Fix: enforce WAL mode on every connection with `PRAGMA journal_mode=WAL;`.
 

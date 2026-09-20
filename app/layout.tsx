@@ -200,6 +200,14 @@ export default function RootLayout({ children }) {
     author: { "@id": `${SITE_URL}/#person` },
     publisher: { "@id": `${SITE_URL}/#person` },
     inLanguage: "en-US",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/blog?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const organizationJsonLd = {
@@ -231,6 +239,39 @@ export default function RootLayout({ children }) {
     ],
   };
 
+  // FAQ schema for the homepage — answers the most common questions
+  // AI assistants and voice search get asked about this site.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What does Amit Kumar do?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Amit Kumar builds production AI agents, MCP tools, self-hosted automations, and multi-agent workflows for founders and teams. He specializes in Hermes Agent (Nous Research) and OpenClaw frameworks, deploying on Hetzner, Hostinger, and DigitalOcean VPS providers.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What is iamamitkumar.dev?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "iamamitkumar.dev is Amit Kumar's personal website and blog, covering production AI agent deployment, MCP tools, self-hosted infrastructure, and full-stack development. It includes technical guides, framework comparisons, and build logs from real production systems.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How many AI agents does Amit Kumar run?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Amit Kumar runs 14 specialist AI agents on a single Hetzner VPS for under $10/month. The stack includes a Commander orchestrator, Research, Coder, QA, Content-Studio, SEO-Recon, Finance, DevOps, Support, and other specialist agents coordinated via a SQLite kanban system.",
+        },
+      },
+    ],
+  };
+
   return (
     <html
       lang="en"
@@ -257,6 +298,10 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationJsonLd),
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
         <Navbar />
         <main className="flex min-h-screen flex-col">

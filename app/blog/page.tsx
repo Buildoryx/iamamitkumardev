@@ -56,11 +56,33 @@ export default async function BlogPage() {
     })),
   };
 
+  // ItemList schema — gives Google a structured list of all blog posts,
+  // which can appear in search results as a carousel or list.
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": `${SITE_URL}/blog/#itemlist`,
+    name: "Blog posts by Amit Kumar",
+    description:
+      "Technical writing on production AI agents, MCP tools, self-hosted automations, and multi-agent workflows.",
+    numberOfItems: indexPosts.length,
+    itemListElement: indexPosts.slice(0, 15).map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/blog/${post.slug}`,
+      name: post.title,
+    })),
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <Container className="flex-1">
         <h1 className="sr-only">
