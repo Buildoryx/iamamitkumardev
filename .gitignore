@@ -82,3 +82,5 @@ vercel.json
 
 # Local SEO audit / implementation notes (not for publication)
 JEV_*.md
+
+.env

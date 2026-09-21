@@ -38,6 +38,8 @@ const envSchema = z.object({
   NOTION_PARENT_PAGE_ID: z.string().optional(),
   NOTION_REVIEW_PARENT_PAGE_ID: z.string().optional(),
   OPENCLAW_API_KEY: z.string().optional(),
+  TYPESAFE_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  SEO_DECISION_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
 
   REDIS_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   ADMIN_USER_IDS: z.string().optional(),
