@@ -32,9 +32,18 @@ export function BlogArticleShell({
           {frontMatter.title}
         </h1>
         {frontMatter.summary ? (
-          <p className="text-muted-foreground pt-3 font-mono text-xs leading-relaxed tracking-widest uppercase">
-            {frontMatter.summary}
-          </p>
+          // AEO: a labeled, visually distinct takeaway block. Answer engines
+          // and featured-snippet extraction lift self-contained summary
+          // blocks far more reliably than inline lead paragraphs, and the
+          // label makes the block's role unambiguous to readers.
+          <div className="border-border/60 mt-4 border-l-2 pl-4">
+            <p className="text-primary font-mono text-[10px] tracking-widest uppercase">
+              Key takeaway
+            </p>
+            <p className="text-foreground/80 pt-1.5 text-sm leading-relaxed">
+              {frontMatter.summary}
+            </p>
+          </div>
         ) : null}
         <div className="text-foreground/50 mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[10px] tracking-widest uppercase">
           <span className="text-primary">

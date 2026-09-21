@@ -1,0 +1,282 @@
+{
+  "ranAt": "2026-09-21T11:29:35.572Z",
+  "model": "jev-1.13.0",
+  "scores": {
+    "technical_seo": {
+      "ten": 4.9,
+      "raw": 1.95,
+      "confidence": 0.96
+    },
+    "sitemap_health": {
+      "ten": 2.7,
+      "raw": 1.08,
+      "confidence": 0.93
+    },
+    "indexability": {
+      "ten": 2.9,
+      "raw": 1.18,
+      "confidence": 0.84
+    },
+    "structured_data": {
+      "ten": 5.2,
+      "raw": 2.09,
+      "confidence": 0.92
+    },
+    "content_aeo": {
+      "ten": 2.6,
+      "raw": 1.05,
+      "confidence": 0.96
+    },
+    "internal_linking": {
+      "ten": 5,
+      "raw": 2,
+      "confidence": 1
+    },
+    "offsite_authority": {
+      "ten": 2.5,
+      "raw": 0.99,
+      "confidence": 0.99
+    },
+    "serp_presence": {
+      "ten": 2.3,
+      "raw": 0.93,
+      "confidence": 0.91
+    }
+  },
+  "overall": 3.5,
+  "priorities": {
+    "top": "fix_sitemap_freshness",
+    "second": "fix_sitemap_freshness"
+  },
+  "shipGate": "ship_after_review",
+  "pillarScope": "concise_hub",
+  "nouls": {
+    "deploy_drift_is_primary": 0.94,
+    "sitemap_frozen_is_primary": 0.82,
+    "content_is_binding_constraint": 0.81,
+    "howto_worth_it": 0.73
+  },
+  "raw": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "technical_seo": {
+        "type": "score",
+        "score": 1.95,
+        "confidence": 0.96,
+        "legend": {
+          "0": "Crawl-blocking failures: broken redirects, duplicate hosts both resolving 200, or robots/canonical signals contradicting each other",
+          "1": "Redirects and robots basically work but real defects leak equity: redirect chains, missing canonicals, or contradictory index headers",
+          "2": "Correct host canonicalization and robots policy; isolated defects remain, like a blanket X-Robots-Tag on API routes or minor inconsistencies",
+          "3": "Clean single-hop redirects on every variant and consistent index directives; only cosmetic issues remain",
+          "4": "Nothing to fix: every variant redirects in one hop, robots and headers deliberate and consistent, canonicals exact on all pages"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0.05,
+          "2": 0.95,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "sitemap_health": {
+        "type": "score",
+        "score": 1.08,
+        "confidence": 0.93,
+        "legend": {
+          "0": "Sitemap missing, invalid, or contradicting robots/noindex directives",
+          "1": "Sitemap stale or missing a large share of indexable URLs; Google cannot rely on it or its lastmod",
+          "2": "Sitemap covers most URLs but freshness is unreliable: new posts lag for weeks and lastmod trust is mixed",
+          "3": "Sitemap closely matches the database with honest lastmod; only occasional lag on brand-new posts",
+          "4": "Sitemap current within minutes, covers every canonical URL, excludes noindex pages, lastmod always honest"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0.92,
+          "2": 0.08,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "indexability": {
+        "type": "score",
+        "score": 1.18,
+        "confidence": 0.84,
+        "legend": {
+          "0": "Key pages error out or are accidentally noindex",
+          "1": "Many important pages absent from the sitemap AND weakly linked, so Google discovers them late or never",
+          "2": "All pages reachable, but discovery depends on crawl luck; no reliable sitemap push for new posts",
+          "3": "All canonical URLs in the sitemap and internally linked; new posts appear in the sitemap promptly",
+          "4": "Everything in level three plus indexing actively nudged via IndexNow/GSC requests and verified in Search Console"
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.81,
+          "2": 0.18,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "structured_data": {
+        "type": "score",
+        "score": 2.09,
+        "confidence": 0.92,
+        "legend": {
+          "0": "No JSON-LD or invalid JSON-LD",
+          "1": "Basic entity schema only (Person/WebSite); article and breadcrumb types missing or erroring",
+          "2": "Person, WebSite, Organization, BlogPosting, BreadcrumbList present and valid; but no answer-engine types (FAQ, HowTo, Speakable, SearchAction, ItemList)",
+          "3": "Full set including FAQ/SearchAction/ItemList; minor gaps like HowTo on guides or one type with warnings",
+          "4": "Gold standard: every eligible type present, valid, entity-linked with @id references, zero errors"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0,
+          "2": 0.91,
+          "3": 0.09,
+          "4": 0
+        }
+      },
+      "content_aeo": {
+        "type": "score",
+        "score": 1.05,
+        "confidence": 0.96,
+        "legend": {
+          "0": "Content not extractable: walls of narrative with no quotable answers",
+          "1": "Posts open with narrative; no quotable definition paragraphs, no takeaway boxes, no bylines",
+          "2": "Some posts open answer-first; takeaways or bylines present on a minority of posts",
+          "3": "Most posts open with a 1-2 sentence direct answer; key-takeaway boxes and expertise bylines on most posts",
+          "4": "Every post: answer-first opening, takeaway box, expertise byline, citable stats and definitions throughout"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0.95,
+          "2": 0.05,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "internal_linking": {
+        "type": "score",
+        "score": 2,
+        "confidence": 1,
+        "legend": {
+          "0": "Pages are islands with no contextual links",
+          "1": "Sparse or tag-only linking; no hubs; commercial pages never linked from content",
+          "2": "Good contextual links across posts plus a homepage hub block, but no pillar page for the main topic cluster",
+          "3": "Contextual links plus a pillar/hub page linking every spoke; commercial pages linked contextually",
+          "4": "Full hub-and-spoke: pillar per cluster, series navigation, contextual CTAs, commercial pages linked from every relevant post"
+        },
+        "probabilities": {
+          "0": 0,
+          "1": 0,
+          "2": 1,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "offsite_authority": {
+        "type": "score",
+        "score": 0.99,
+        "confidence": 0.99,
+        "legend": {
+          "0": "No web presence beyond the domain itself",
+          "1": "Zero executed outreach; plans exist but target stale or nonexistent URLs; no earned links; entity limited to social profiles",
+          "2": "A few profile/directory links live; editorial outreach started but nothing landed",
+          "3": "Consistent link velocity: several relevant referring domains earned over months; cross-posting with canonicals",
+          "4": "Recognized topical authority: editorial links from relevant publications, citations in AI answers, strong branded search demand"
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.99,
+          "2": 0,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "serp_presence": {
+        "type": "score",
+        "score": 0.93,
+        "confidence": 0.91,
+        "legend": {
+          "0": "Site effectively invisible: impressions near zero, key pages not indexed",
+          "1": "Head pages only surface; content pages rarely impress (under ~20 impressions/month site-wide)",
+          "2": "Content pages surface occasionally for long-tails; average position outside top 20",
+          "3": "Regular impressions across the cluster; several pages ranking 10-20; brand queries won",
+          "4": "Top-3 rankings for cluster head terms; growing impressions; featured snippets or AI citations appearing"
+        },
+        "probabilities": {
+          "0": 0.09,
+          "1": 0.9,
+          "2": 0.01,
+          "3": 0,
+          "4": 0
+        }
+      },
+      "top_lever": {
+        "type": "choice",
+        "choice": "fix_sitemap_freshness",
+        "confidence": 0.99,
+        "probabilities": {
+          "execute_outreach_wave": 0,
+          "build_pillar_page": 0,
+          "deploy_unpushed_commit": 0.01,
+          "gsc_indexing_push": 0,
+          "aeo_content_upgrades": 0,
+          "fix_sitemap_freshness": 0.99
+        }
+      },
+      "second_lever": {
+        "type": "choice",
+        "choice": "fix_sitemap_freshness",
+        "confidence": 0.81,
+        "probabilities": {
+          "build_pillar_page": 0,
+          "execute_outreach_wave": 0.01,
+          "deploy_unpushed_commit": 0.14,
+          "gsc_indexing_push": 0.01,
+          "aeo_content_upgrades": 0,
+          "fix_sitemap_freshness": 0.84
+        }
+      },
+      "ship_gate": {
+        "type": "choice",
+        "choice": "ship_after_review",
+        "confidence": 0.74,
+        "probabilities": {
+          "hold": 0.12,
+          "ship_after_review": 0.82,
+          "ship_now": 0.06
+        }
+      },
+      "pillar_scope": {
+        "type": "choice",
+        "choice": "concise_hub",
+        "confidence": 0.44,
+        "probabilities": {
+          "concise_hub": 0.63,
+          "defer": 0.36,
+          "full_guide": 0.01
+        }
+      },
+      "deploy_drift_is_primary": {
+        "type": "noul",
+        "noul": 0.94
+      },
+      "sitemap_frozen_is_primary": {
+        "type": "noul",
+        "noul": 0.82
+      },
+      "content_is_binding_constraint": {
+        "type": "noul",
+        "noul": 0.81
+      },
+      "howto_worth_it": {
+        "type": "noul",
+        "noul": 0.73
+      }
+    },
+    "usage": {
+      "input_tokens": 4474,
+      "output_tokens": 477
+    }
+  }
+}

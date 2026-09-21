@@ -41,6 +41,33 @@ const markdownComponents = {
 /** Keep post pages fresh when agents/admin publish via revalidatePath. */
 export const revalidate = 60;
 
+/**
+ * HowTo markup for the two step-by-step deployment guides.
+ *
+ * Honest note: Google retired the HowTo *rich result* in September 2023, so
+ * this no longer earns a SERP enhancement on Google. It is kept because the
+ * pages are genuine step-by-step tutorials and other engines plus AI answer
+ * parsers still consume HowTo structure. Steps are intentionally short —
+ * they summarize the guide, they do not replace reading it.
+ */
+const HOW_TO_STEPS: Record<string, string[]> = {
+  "deploy-hermes-agent-on-hetzner": [
+    "Provision a Hetzner CX22 VPS with Ubuntu and lock down SSH access.",
+    "Install Tailscale so the agent is reachable without exposing public ports.",
+    "Clone Hermes, configure the environment, and wire up the Telegram gateway.",
+    "Create a systemd unit so the agent survives reboots and auto-restarts.",
+    "Verify the deployment end-to-end and schedule updates and backups.",
+  ],
+  "deploy-hermes-agents-to-vps-the-right-way": [
+    "Pick the right VPS size for your agent workload and create the server.",
+    "Apply baseline security: SSH keys, firewall, and fail2ban.",
+    "Set up Tailscale networking between you and the agent host.",
+    "Deploy Hermes agents with isolated configs per agent.",
+    "Register each agent as a systemd service with restart policies.",
+    "Test the full loop — message in, action out, logs clean — before calling it production.",
+  ],
+};
+
 export async function generateStaticParams() {
   try {
     const posts = await getPublishedPosts();
@@ -176,6 +203,26 @@ export default async function BlogPostPage({ params }: PageProps) {
     },
   };
 
+  // HowTo schema for the step-by-step deployment guides (see HOW_TO_STEPS
+  // note above on why this is kept despite Google's rich-result retirement).
+  const howToSteps = HOW_TO_STEPS[post.slug];
+  const howToJsonLd = howToSteps
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: seoTitle,
+        description: articleDescription,
+        totalTime: "PT1H",
+        step: howToSteps.map((text, index) => ({
+          "@type": "HowToStep",
+          position: index + 1,
+          name: text.split(" ").slice(0, 6).join(" "),
+          text,
+          url: `${pageUrl}#step-${index + 1}`,
+        })),
+      }
+    : null;
+
   return (
     <>
       <script
@@ -190,6 +237,12 @@ export default async function BlogPostPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd) }}
       />
+      {howToJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }}
+        />
+      ) : null}
 
       <Container className="pt-4">
         {/* Visible breadcrumb navigation — reinforces site hierarchy for
@@ -233,6 +286,27 @@ export default async function BlogPostPage({ params }: PageProps) {
       </BlogArticleShell>
 
       <Container>
+        {/* E-E-A-T byline — an explicit experience claim tied to the entity.
+            Google's quality raters and AI citation engines weight stated
+            first-hand experience; every post on this site is tested on the
+            stack described here before publishing. */}
+        <div className="border-border/50 bg-card/30 mt-2 rounded-lg border p-5">
+          <p className="text-foreground text-sm font-medium">
+            Written by Amit Kumar
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+            I run 14 AI agents on a single Hetzner VPS — the same self-hosted
+            stack documented across this blog. Everything I publish here is
+            tested in production on that infrastructure first.
+          </p>
+          <Link
+            href="/agents"
+            className="text-primary mt-2 inline-block text-xs font-medium hover:underline"
+          >
+            What I build with these agents →
+          </Link>
+        </div>
+
         <ClapButton slug={post.slug} />
         <DottedSeparator className="my-8" />
         {related.length > 0 && (

@@ -106,6 +106,13 @@ module.exports = {
         ],
       },
       {
+        // API JSON must not carry an index directive. Later rules override
+        // earlier ones for the same header key, so this wins over the
+        // catch-all above for every /api/* response.
+        source: "/api/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      {
         source: "/",
         headers: [
           {

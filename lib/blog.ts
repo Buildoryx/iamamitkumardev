@@ -274,23 +274,6 @@ async function getMdxPublishedPosts(
   return posts;
 }
 
-export async function getAllFilesFrontMatter(): Promise<PostSummary[]> {
-  const posts = await getMdxAllPosts();
-  return posts.map((post) => ({
-    id: post.id,
-    title: post.title,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    summary: post.summary,
-    image: post.image,
-    excerpt: post.excerpt,
-    coverImage: post.coverImage,
-    tags: post.tags,
-    readingTime: post.readingTime,
-    wordCount: post.wordCount,
-  }));
-}
-
 export async function getPublishedPosts(
   limit?: number,
   offset?: number
@@ -347,10 +330,6 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   }
 
   return getMdxPostBySlug(slug);
-}
-
-export async function getFileBySlug(slug: string): Promise<Post | null> {
-  return getPostBySlug(slug);
 }
 
 export async function getRelatedPosts(

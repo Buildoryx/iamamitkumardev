@@ -3,6 +3,12 @@ import { Subheading } from "@/components/subheading";
 
 const links = [
   {
+    href: "/blog/topics/self-hosted-ai-agents",
+    title: "Self-hosted AI agents: the complete guide",
+    description:
+      "The topic pillar: a €4–6/month VPS, your first Hermes agent, and every hardening guide on this site in reading order.",
+  },
+  {
     href: "/agents",
     title: "Production AI agent builds",
     description:

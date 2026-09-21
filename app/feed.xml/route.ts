@@ -1,4 +1,4 @@
-import { AUTHOR, getPublishedPosts, SITE_URL } from "@/lib/blog";
+import { AUTHOR, getPublishedPosts, isNonCanonicalSlug, SITE_URL } from "@/lib/blog";
 
 function escapeXml(str: string): string {
   return str
@@ -10,7 +10,12 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-  const allPosts = await getPublishedPosts();
+  const allPosts = (await getPublishedPosts()).filter(
+    // The non-canonical duplicate is permanently redirected to its canonical
+    // URL on the site; advertising it here (guid + link) told every feed
+    // reader and crawler about a URL we actively consolidate away from.
+    (post) => !isNonCanonicalSlug(post.slug),
+  );
 
   const items = allPosts.map((post) => {
     const pubDate = post.publishedAt

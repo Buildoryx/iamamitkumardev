@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Container from "@/components/container";
 import { DottedSeparator } from "@/components/separator";
 import { BlogIndex } from "@/components/blog/blog-index";
@@ -21,6 +22,22 @@ export const metadata: Metadata = {
     types: {
       "application/rss+xml": `${SITE_URL}/feed.xml`,
     },
+  },
+  // Without this block, /blog inherited the root layout's OpenGraph title
+  // ("Amit Kumar — Production AI Agents & MCP Tools"), so link unfurls and
+  // social cards showed the homepage's identity for the blog index.
+  openGraph: {
+    title: "Blog — AI Agents, MCP Tools & Build Logs | Amit Kumar",
+    description:
+      "Technical writing on production AI agents, MCP tools, self-hosted automations, multi-agent workflows, product shipping, and growth experiments.",
+    url: `${SITE_URL}/blog`,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blog — AI Agents, MCP Tools & Build Logs | Amit Kumar",
+    description:
+      "Technical writing on production AI agents, MCP tools, self-hosted automations, multi-agent workflows, product shipping, and growth experiments.",
   },
 };
 
@@ -91,6 +108,19 @@ export default async function BlogPage() {
         <p className="text-muted-foreground pt-4 font-mono text-xs tracking-widest uppercase">
           TECHNICAL WRITING ON PRODUCTION AI AGENTS, MCP TOOLS, SELF-HOSTED
           AUTOMATIONS, MULTI-AGENT WORKFLOWS, AND PRODUCT SHIPPING.
+        </p>
+
+        {/* Topic-pillar entry point — the hub page links every self-hosting
+            spoke in reading order; surfacing it here gives crawlers a
+            homepage-strength internal link to the cluster. */}
+        <p className="text-muted-foreground mt-3 text-sm">
+          New to self-hosting?{" "}
+          <Link
+            href="/blog/topics/self-hosted-ai-agents"
+            className="text-primary font-medium hover:underline"
+          >
+            Start with the complete guide →
+          </Link>
         </p>
 
         <BlogIndex posts={indexPosts} />

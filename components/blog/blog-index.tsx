@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconSearch } from "@tabler/icons-react";
 import { BlogPostLink } from "./blog-post-link";
 import { cn } from "@/lib/utils";
@@ -117,6 +117,24 @@ function clusterFor(post: BlogIndexPost): string {
 
 export function BlogIndex({ posts }: BlogIndexProps) {
   const [query, setQuery] = useState("");
+
+  // The WebSite JSON-LD SearchAction targets `/blog?q={search_term_string}`,
+  // so `?q=` must actually do something when a user (or Google's sitelinks
+  // searchbox verification) lands here with a query. Read once on mount —
+  // deliberately client-side so the page stays statically renderable.
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("q");
+    if (initial) setQuery(initial);
+  }, []);
+
+  // Keep the URL shareable while typing: /blog?q=hetzner deep-links to a
+  // filtered view. replaceState avoids polluting history with every keystroke.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (query.trim()) url.searchParams.set("q", query.trim());
+    else url.searchParams.delete("q");
+    window.history.replaceState(null, "", url);
+  }, [query]);
 
   const sorted = useMemo(() => [...posts].sort(byNewestFirst), [posts]);
 
